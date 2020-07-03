@@ -1,0 +1,4 @@
+output/
+root/
+__pycache__/
+*.pdf/
