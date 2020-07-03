@@ -4,14 +4,16 @@ import re
 import csv
 import os
 import sys
-from pprint import pprint
 import uproot
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.ticker
 import mplhep as hep
+import argparse
+
 from load_data import load_data
 from pprint import pprint
+
 
 pjoin = os.path.join
 
@@ -25,7 +27,14 @@ pretty_labels = {
     'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
 }
 
-def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, variable='mjj'):
+def parse_cli():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--region', help='The region to be plotted.')
+    parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
+    args = parser.parse_args()
+    return args
+
+def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, variable='mjj'):
     '''
     Create a stack plot for the processes specified.
     ==================
@@ -36,8 +45,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, variable
     process_list    : List of physics processes to be plotted
     csv_file        : The CSV file containing XS + sumw information for each dataset
     selection_dicts : List of dictionaries, each containing information about a selection.
+    region          : Region to be plotted (A,B,C or D for ABCD method).
     variable        : The variable of interest, by defualt it is mjj.
     '''
+    print(f'MSG% Starting job, region: {region}')
     # Obtain the histograms for each process specified
     histograms = {}
     data = {}
@@ -97,14 +108,11 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, variable
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
-    cut_label_for_file = ''
-    if selection_dicts is not None:
-        for selection_dict in selection_dicts:
-            cut_label_for_file += selection_dict['file_label'] 
-    else:
-        cut_label_for_file = '_sr_cuts'
+    if region in ['A', 'B', 'C', 'D']:
+        outfile = f'stack_plot_region{region}.pdf'
+    elif region == 'noCuts':
+        outfile = f'stack_plot_{region}.pdf'
 
-    outfile = f'stack_plot{cut_label_for_file}.pdf'
     outpath = pjoin(outdir, outfile)
     print(f'MSG% File saved: {outpath}')
     fig.savefig(outpath)
@@ -118,21 +126,50 @@ def main():
     # inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees'
     inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
     csv_file = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/csv/xs_sumw.csv'
-    print(f'MSG% CSV file containing XS and sumw: {csv_file}')
 
     outtag = os.path.basename(inpath)
 
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
-    selection_dicts = [
-        # {'variable' : 'dphijj', 'low' : None, 'high' : 1.5, 'label' : 'dphijj<1.5', 'file_label' : '_dphijj_smallerThan_1_5'},
-        # {'variable' : 'dphijj', 'low' : 1.5, 'high' : None, 'label' : 'dphijj>1.5', 'file_label' : '_dphijj_largerThan_1_5'},
-        # {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3, 'label' : '1.0<dPhiTrailingJetMet<2.3', 'file_label' : '_dPhiTrailingJetMet_between_1_0_and_2_3'}
-        {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None, 'label' : 'dPhiTrailingJetMet>2.3', 'file_label' : '_dPhiTrailingJetMet_largerThan_2_3'}
-    ]
+    # Region definitions for ABCD method
+    # Region A: dphijj > 1.5 & 1.0 < dPhiTrailingJetMet < 2.3
+    # Region B: dphijj > 1.5 & dPhiTrailingJetMet > 2.3
+    # Region C: dphijj < 1.5 & 1.0 < dPhiTrailingJetMet < 2.3
+    # Region D: dphijj < 1.5 & dPhiTrailingJetMet > 2.3
 
-    excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, selection_dicts=selection_dicts)
+    args = parse_cli()
+
+    selections_by_region = {
+        'region A' : [
+            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
+            {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
+        ],
+        'region B' : [
+            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
+            {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
+        ],
+        'region C' : [
+            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
+            {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
+        ],
+        'region D' : [
+            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
+            {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
+        ]
+    }
+
+    # Pick the relevant selection for the region being specified (if specified)
+    if args.region:
+        region = args.region
+        selection_dicts = selections_by_region[f'region {region}']
+    elif (not args.region and args.noCuts):
+        region = 'noCuts'
+        selection_dicts = None
+    else:
+        raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
+
+    excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, selection_dicts=selection_dicts, region=region)
 
 if __name__ == '__main__':
     main()
