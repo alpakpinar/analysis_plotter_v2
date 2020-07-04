@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # =============================
-# Script to get the ratios of excess data events in different 
-# regions as a function of mjj, for QCD estimation studies. 
+# Script to get the QCD estimate values by using ABCD method. 
 # =============================
 
 import os
@@ -81,7 +80,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     rax.set_ylabel(f'{region1} / {region2}')
 
     # Save the figure
-    outdir = f'./output/{outtag}/excess_events'
+    outdir = f'./output/{outtag}/qcd_estimation'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     outfile = f'excess_events_regions_{region1}_{region2}.pdf'
@@ -109,12 +108,56 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Return the ratio and the corresponding binning
     return ratio, bins
 
+def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=True):
+    '''
+    Using the ratios between several regions, get the QCD estimate for the signal region.
+    ==================
+    ARGUMENTS:
+    ==================
+    inpath          : The path containing input ROOT files
+    outtag          : Output tag to name the output directory 
+    process_list    : List of physics processes to be plotted 
+    csv_file        : The CSV file containing XS + sumw information for each dataset
+    variable        : The variable of interest, by defualt it is mjj
+    save_to_root    : If set to True, save the results into an output ROOT file
+    '''
+    # Here, the QCD estimation is calculated as: (C/A) * B 
+    # First, get the ratio of C/A
+    ratio_C_A, bins = get_ratio_of_excess_data(inpath, outtag, region1='C', region2='A', process_list=process_list, csv_file=csv_file, save_to_root=False)
+
+    # Get the excess data events for region B
+    excess_events_B, bins = stack_plot(inpath, outtag, process_list, csv_file, selection_dicts=selections_by_region['region B'], region='B') 
+    # If excess events are smaller than 0, just set them to 0 since we're not interested in those
+    excess_events_B[excess_events_B < 0] = 0.
+
+    # Get the QCD estimate for region D (region of interest)
+    bad_value = np.isnan(ratio_C_A) | np.isinf(ratio_C_A)
+    qcd_estimation = ratio_C_A * excess_events_B
+    qcd_estimation[bad_value] = 0.
+
+    # Plot the QCD estimation as a function of mjj
+    fig, ax = plt.subplots()
+    hep.histplot(qcd_estimation, bins, ax=ax, histtype='step')
+    ax.set_xlabel(r'$M_{jj} \ (GeV)$')
+    ax.set_ylabel('Events')
+    ax.set_yscale('log')
+    ax.set_ylim(1e-2,1e3)
+    ax.set_title('QCD Estimation')
+    
+    # Save figure
+    outdir = f'./output/{outtag}/qcd_estimation'
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    
+    outpath = pjoin(outdir, 'qcd_estimation.pdf')
+    fig.savefig(outpath)
+    print(f'MSG% File saved: {outpath}')
+
+    # Return the QCD estimations and the corresponding binning
+    return qcd_estimation, bins
+
 def main():
     args = parse_cli()
-
-    # Warn the user if regions are not specified
-    if (not args.region1) or (not args.region2):
-        raise RuntimeError('Please specify the two regions for the ratio via --region1 and --region2 options.')
 
     # Path to ROOT files
     # inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees'
@@ -126,7 +169,10 @@ def main():
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
-    excess_ratio, bins = get_ratio_of_excess_data(inpath, outtag, region1=args.region1, region2=args.region2, process_list=process_list, csv_file=csv_file)
+    # excess_ratio, bins = get_ratio_of_excess_data(inpath, outtag, region1=args.region1, region2=args.region2, process_list=process_list, csv_file=csv_file)
+    qcd_estimation, bins = get_qcd_estimate(inpath, outtag, process_list, csv_file)
+    print(qcd_estimation)
+    print(bins)
 
 if __name__ == '__main__':
     main()
