@@ -171,8 +171,6 @@ def main():
 
     # excess_ratio, bins = get_ratio_of_excess_data(inpath, outtag, region1=args.region1, region2=args.region2, process_list=process_list, csv_file=csv_file)
     qcd_estimation, bins = get_qcd_estimate(inpath, outtag, process_list, csv_file)
-    print(qcd_estimation)
-    print(bins)
 
 if __name__ == '__main__':
     main()
