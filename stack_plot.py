@@ -34,24 +34,35 @@ def parse_cli():
     args = parser.parse_args()
     return args
 
-def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, variable='mjj'):
+def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, variable='mjj', include_qcd_estimation=False, qcd_estimation=None):
     '''
     Create a stack plot for the processes specified.
     ==================
     ARGUMENTS:
     ==================
-    inpath          : The path containing input ROOT files
-    outtag          : Output tag to name the output directory 
-    process_list    : List of physics processes to be plotted
-    csv_file        : The CSV file containing XS + sumw information for each dataset
-    selection_dicts : List of dictionaries, each containing information about a selection.
-    region          : Region to be plotted (A,B,C or D for ABCD method).
-    variable        : The variable of interest, by defualt it is mjj.
+    inpath                 : The path containing input ROOT files
+    outtag                 : Output tag to name the output directory 
+    process_list           : List of physics processes to be plotted
+    csv_file               : The CSV file containing XS + sumw information for each dataset
+    selection_dicts        : List of dictionaries, each containing information about a selection.
+    region                 : Region to be plotted (A,B,C or D for ABCD method).
+    variable               : The variable of interest, by defualt it is mjj.
+    include_qcd_estimation : If set to True, include the QCD estimation in the MC stack (False by default).
+                             One must provide the QCD estimation as an array if this flag is set to True. 
+    qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
     '''
+    # Check about the QCD estimation
+    if include_qcd_estimation and (qcd_estimation is None):
+        raise RuntimeError('Please specify the QCD estimation for plotting.')
+    
     print(f'MSG% Starting job, region: {region}')
     # Obtain the histograms for each process specified
     histograms = {}
     data = {}
+    # Add the QCD estimation to the MC stack if requested
+    if include_qcd_estimation:
+        histograms['QCD'] = qcd_estimation
+
     for process in process_list:
         print(f'MSG% Obtaining histogram for {process}')
         h, bins = load_data(inpath, process, csv_file, variable, selection_dicts)
@@ -65,6 +76,9 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
     # Plot MC
     labels = []
+    if include_qcd_estimation:
+        labels.append('QCD')
+
     for process in process_list:
         if process == 'MET':
             continue
@@ -108,10 +122,12 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
+    qcd_estimation_suffix = '_withQCD' if include_qcd_estimation else ''
+
     if region in ['A', 'B', 'C', 'D']:
-        outfile = f'stack_plot_region{region}.pdf'
-    elif region == 'noCuts':
-        outfile = f'stack_plot_{region}.pdf'
+        outfile = f'stack_plot_region{region}{qcd_estimation_suffix}.pdf'
+    else:
+        outfile = f'stack_plot_{region}{qcd_estimation_suffix}.pdf'
 
     outpath = pjoin(outdir, outfile)
     print(f'MSG% File saved: {outpath}')
@@ -156,13 +172,20 @@ def main():
         'region D' : [
             {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
             {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
+        ],
+        # Cuts for signal region
+        'signal': [
+            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
         ]
     }
 
     # Pick the relevant selection for the region being specified (if specified)
     if args.region:
         region = args.region
-        selection_dicts = selections_by_region[f'region {region}']
+        if region in ['A', 'B', 'C', 'D']:
+            selection_dicts = selections_by_region[f'region {region}']
+        else:
+            selection_dicts = selections_by_region[region] 
     elif (not args.region and args.noCuts):
         region = 'noCuts'
         selection_dicts = None

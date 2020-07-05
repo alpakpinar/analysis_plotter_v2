@@ -33,6 +33,9 @@ selections_by_region = {
     'region D' : [
         {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
         {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
+    ],
+    'signalRegion': [
+        {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
     ]
 }
 
@@ -156,6 +159,22 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     # Return the QCD estimations and the corresponding binning
     return qcd_estimation, bins
 
+def stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_estimation):
+    '''
+    Create a stack plot for the signal region with the QCD estimation included.
+    Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
+    '''
+    # Call the stack_plot function with the QCD estimate included
+    region = 'signalRegion'
+    selection_dicts = selections_by_region[region]
+
+    stack_plot(inpath, outtag, process_list, csv_file, 
+               selection_dicts=selection_dicts, 
+               region=region, 
+               include_qcd_estimation=True, 
+               qcd_estimation=qcd_estimation
+               )
+
 def main():
     args = parse_cli()
 
@@ -169,8 +188,10 @@ def main():
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
-    # excess_ratio, bins = get_ratio_of_excess_data(inpath, outtag, region1=args.region1, region2=args.region2, process_list=process_list, csv_file=csv_file)
     qcd_estimation, bins = get_qcd_estimate(inpath, outtag, process_list, csv_file)
+
+    # Create a stack plot with QCD estimation included
+    stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_estimation)
 
 if __name__ == '__main__':
     main()
