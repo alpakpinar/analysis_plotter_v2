@@ -39,6 +39,7 @@ xlabels = {
 
 def parse_cli():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 03Jul20.', default='03Jul20')
     parser.add_argument('--variable', help='The variable to be plotted, default is mjj.', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
@@ -161,9 +162,15 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     return excess_data, bins
 
 def main():
-    # Path to ROOT files
-    # inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees'
-    inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
+    args = parse_cli()
+    # Path to ROOT files, by default use the latest ones (03Jul20), if specified use 30Jun20 instead.
+    if args.version == '03Jul20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-03_nodphijj'
+    elif args.version == '30Jun20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
+    
+    print(f'MSG% Using trees from version: {args.version}')
+    # Path to CSV file containing XS + sumw information for every dataset
     csv_file = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/csv/xs_sumw.csv'
 
     outtag = os.path.basename(inpath)
@@ -176,8 +183,6 @@ def main():
     # Region B: dphijj > 1.5 & dPhiTrailingJetMet > 2.3
     # Region C: dphijj < 1.5 & 1.0 < dPhiTrailingJetMet < 2.3
     # Region D: dphijj < 1.5 & dPhiTrailingJetMet > 2.3
-
-    args = parse_cli()
 
     selections_by_region = {
         'region A' : [
