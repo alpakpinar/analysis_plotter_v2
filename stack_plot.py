@@ -108,6 +108,14 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     ax.set_yscale('log')
     ax.set_ylim(1e-3, 1e5)    
 
+    # Aesthetics: Put edge colors
+    handles, labels = ax.get_legend_handles_labels()
+    for handle, label in zip(handles, labels):
+        if label == 'Data':
+            continue
+        handle.set_linestyle('-')
+        handle.set_edgecolor('k')
+
     # Plot the data/MC ratio
     total_mc = np.sum(stacked_histos, axis=0)
     ratio = data / total_mc
