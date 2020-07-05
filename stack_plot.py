@@ -27,8 +27,15 @@ pretty_labels = {
     'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
 }
 
+xlabels = {
+    'mjj' : r'$M_{jj} \ (GeV)$',
+    'dPhiLeadingJetMet'  : r'$\Delta \Phi (jet0, MET)$',
+    'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$'
+}
+
 def parse_cli():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--variable', help='The variable to be plotted, default is mjj.', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
     args = parser.parse_args()
@@ -55,7 +62,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     if include_qcd_estimation and (qcd_estimation is None):
         raise RuntimeError('Please specify the QCD estimation for plotting.')
     
-    print(f'MSG% Starting job, region: {region}')
+    print(f'MSG% Starting job -- Region: {region}, Variable: {variable}')
     # Obtain the histograms for each process specified
     histograms = {}
     data = {}
@@ -108,7 +115,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
 
     rax.set_ylabel('Data / MC')
     rax.set_ylim(0.5,1.5)
-    rax.set_xlabel(r'$M_{jj} \ (GeV)$')
+    rax.set_xlabel(xlabels[variable])
 
     loc1 = matplotlib.ticker.MultipleLocator(base=0.2)
     loc2 = matplotlib.ticker.MultipleLocator(base=0.1)
@@ -125,9 +132,9 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     qcd_estimation_suffix = '_withQCD' if include_qcd_estimation else ''
 
     if region in ['A', 'B', 'C', 'D']:
-        outfile = f'stack_plot_region{region}{qcd_estimation_suffix}.pdf'
+        outfile = f'stack_plot_region{region}_{variable}{qcd_estimation_suffix}.pdf'
     else:
-        outfile = f'stack_plot_{region}{qcd_estimation_suffix}.pdf'
+        outfile = f'stack_plot_{region}_{variable}{qcd_estimation_suffix}.pdf'
 
     outpath = pjoin(outdir, outfile)
     print(f'MSG% File saved: {outpath}')
@@ -192,7 +199,11 @@ def main():
     else:
         raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
 
-    excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, selection_dicts=selection_dicts, region=region)
+    excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
+                        variable = args.variable,
+                        selection_dicts=selection_dicts, 
+                        region=region
+                        )
 
 if __name__ == '__main__':
     main()
