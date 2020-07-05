@@ -77,40 +77,24 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
 
         # Event selection
         if selection_dicts:
-            if len(selection_dicts) == 1:
-                selection_dict = selection_dicts[0]
+            # Initialize the mask with all True values
+            mask = np.ones_like(events[variable].array(), dtype=bool)
+            # Update the mask with each selection content
+            for selection_dict in selection_dicts:
                 variable_to_cut = selection_dict['variable']
                 low_limit, high_limit = selection_dict['low'], selection_dict['high']
-
-                # Construct the mask
+                
                 variable_to_cut_arr = events[variable_to_cut].array()
+
                 if (low_limit is not None) and (high_limit is not None):
-                    mask = (variable_to_cut_arr > low_limit) & (variable_to_cut_arr < high_limit)
+                    mask_update = (variable_to_cut_arr > low_limit) & (variable_to_cut_arr < high_limit)
                 elif low_limit is None:
-                    mask = variable_to_cut_arr < high_limit
+                    mask_update = variable_to_cut_arr < high_limit
                 elif high_limit is None:
-                    mask = variable_to_cut_arr > low_limit
-
-            # More than one selection is applied
-            else:
-                # Initialize the mask with all True values
-                mask = np.ones_like(events[variable].array(), dtype=bool)
-                # Update the mask with each selection content
-                for selection_dict in selection_dicts:
-                    variable_to_cut = selection_dict['variable']
-                    low_limit, high_limit = selection_dict['low'], selection_dict['high']
-                    
-                    variable_to_cut_arr = events[variable_to_cut].array()
-
-                    if (low_limit is not None) and (high_limit is not None):
-                        mask_update = (variable_to_cut_arr > low_limit) & (variable_to_cut_arr < high_limit)
-                    elif low_limit is None:
-                        mask_update = variable_to_cut_arr < high_limit
-                    elif high_limit is None:
-                        mask_update = variable_to_cut_arr > low_limit
-                    
-                    # Update the mask
-                    mask = mask & mask_update
+                    mask_update = variable_to_cut_arr > low_limit
+                
+                # Update the mask
+                mask = mask & mask_update
                 
         else:
             mask = np.ones_like(events[variable].array(), dtype=bool)
