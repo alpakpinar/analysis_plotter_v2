@@ -40,7 +40,7 @@ xlabels = {
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 03Jul20.', default='03Jul20')
-    parser.add_argument('--variable', help='The variable to be plotted, default is mjj.', default='mjj')
+    parser.add_argument('--variables', help='The list of variables to be plotted, default is mjj.', nargs='*', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
     args = parser.parse_args()
@@ -224,11 +224,12 @@ def main():
     else:
         raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
 
-    excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
-                        variable=args.variable,
-                        selection_dicts=selection_dicts, 
-                        region=region
-                        )
+    for variable in args.variables:
+        excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
+                            variable=variable,
+                            selection_dicts=selection_dicts, 
+                            region=region
+                            )
 
 if __name__ == '__main__':
     main()
