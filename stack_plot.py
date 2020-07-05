@@ -124,6 +124,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     rax.grid(axis='y',which='minor',linestyle='--')
     rax.grid(axis='y',which='major',linestyle='--')
 
+    xlim = rax.get_xlim()
+    rax.plot(xlim, [1., 1.], 'r--')
+    rax.set_xlim(xlim)
+
     # Save figure
     outdir = f'./output/{outtag}'
     if not os.path.exists(outdir):
@@ -183,6 +187,10 @@ def main():
         # Cuts for signal region
         'signal': [
             {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
+        ],
+        # Orthogonal to SR, dphijj > 1.5
+        'dphijj_largerThan_1_5' : [
+            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None}
         ]
     }
 
@@ -200,7 +208,7 @@ def main():
         raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
 
     excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
-                        variable = args.variable,
+                        variable=args.variable,
                         selection_dicts=selection_dicts, 
                         region=region
                         )
