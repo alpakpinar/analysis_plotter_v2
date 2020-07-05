@@ -30,7 +30,11 @@ pretty_labels = {
 xlabels = {
     'mjj' : r'$M_{jj} \ (GeV)$',
     'dPhiLeadingJetMet'  : r'$\Delta \Phi (jet0, MET)$',
-    'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$'
+    'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$',
+    'dPhiMoreCentralJetMet' : r'$\Delta \Phi (central jet, MET)$',
+    'dPhiMoreForwardJetMet' : r'$\Delta \Phi (forward jet, MET)$',
+    'mindPhiJetMet' : r'$min\Delta \Phi (jet, MET)$',
+    'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$'
 }
 
 def parse_cli():

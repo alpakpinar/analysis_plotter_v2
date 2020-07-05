@@ -33,9 +33,7 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
     the requested variable. Use the selections provided in the selection_dict variable. 
     '''
     binning = {
-        'mjj' : list(range(200,800,300)) + list(range(800,2000,400)) + [2000, 2750, 3500],
-        'dPhiLeadingJetMet'  : np.linspace(0,3.5,50),
-        'dPhiTrailingJetMet' : np.linspace(0,3.5,50),
+        'mjj' : list(range(200,800,300)) + list(range(800,2000,400)) + [2000, 2750, 3500]
     }
     # Get XS + sumw scaling factors
     xs_sumw_scale = get_data_from_csv(csv_file)
@@ -113,7 +111,13 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
                 weights *= events[weight].array()[mask]
 
         # Construct the histogram
-        h, bins = np.histogram(var, bins=binning[variable], weights=weights)
+        if variable in binning.keys():
+            bins = binning[variable]
+        elif re.match('.*dPhi.*', variable):
+            bins = np.linspace(0,3.5,50)
+        else:
+            raise RuntimeError(f'No binning found for variable: {variable}')
+        h, bins = np.histogram(var, bins=bins, weights=weights)
         
         # Scale the MC histogram (do not scale data)
         if process != 'MET':
