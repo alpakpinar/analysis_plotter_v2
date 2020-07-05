@@ -37,6 +37,16 @@ xlabels = {
     'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$'
 }
 
+# Figure titles for each region
+fig_titles = {
+    'region A' : r'$\Delta \Phi_{jj} > 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
+    'region B' : r'$\Delta \Phi_{jj} > 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
+    'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
+    'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
+    'signal'   : r'$\Delta \Phi_{jj} < 1.5$ (SR Selection)',
+    'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$'
+}
+
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 05Jul20.', default='05Jul20')
@@ -112,6 +122,11 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     ax.set_ylabel('Events / Bin Width')
     ax.set_yscale('log')
     ax.set_ylim(1e-3, 1e5)    
+
+    if region in ['A', 'B', 'C', 'D']:
+        ax.set_title(fig_titles[f'region {region}'])
+    else:
+        ax.set_title(fig_titles[region])
 
     # Aesthetics: Put edge colors
     handles, labels = ax.get_legend_handles_labels()

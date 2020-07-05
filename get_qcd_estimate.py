@@ -34,15 +34,14 @@ selections_by_region = {
         {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
         {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
     ],
-    'signalRegion': [
+    'signal': [
         {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
     ]
 }
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--region1', help='First region to be run over.')
-    parser.add_argument('--region2', help='Second region to be run over.')
+    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 05Jul20.', default='05Jul20')
     args = parser.parse_args()
     return args
 
@@ -165,7 +164,7 @@ def stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_e
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
     '''
     # Call the stack_plot function with the QCD estimate included
-    region = 'signalRegion'
+    region = 'signal'
     selection_dicts = selections_by_region[region]
 
     stack_plot(inpath, outtag, process_list, csv_file, 
@@ -178,9 +177,14 @@ def stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_e
 def main():
     args = parse_cli()
 
-    # Path to ROOT files
-    # inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees'
-    inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
+    # Path to ROOT files, by default use the latest ones (05Jul20), if specified use 30Jun20 instead.
+    if args.version == '05Jul20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
+    elif args.version == '30Jun20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
+
+    print(f'MSG% Using trees from version: {args.version}')
+    # Path to CSV file containing XS + sumw information for every dataset
     csv_file = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/csv/xs_sumw.csv'
 
     outtag = os.path.basename(inpath)
