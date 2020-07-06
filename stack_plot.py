@@ -44,7 +44,8 @@ fig_titles = {
     'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
     'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
     'signal'   : r'$\Delta \Phi_{jj} < 1.5$ (SR Selection)',
-    'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$'
+    'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
+    'noCuts' : 'No Additional Cuts'
 }
 
 def parse_cli():
