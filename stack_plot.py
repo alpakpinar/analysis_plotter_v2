@@ -239,7 +239,17 @@ def main():
     else:
         raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
 
-    for variable in args.variables:
+    # If a variable list is given, loop over each variable and make plots
+    if isinstance(args.variables, list): 
+        for variable in args.variables:
+            excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
+                                variable=variable,
+                                selection_dicts=selection_dicts, 
+                                region=region
+                                )
+    # The case where only a single variable is specified
+    else:
+        variable = args.variables
         excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                             variable=variable,
                             selection_dicts=selection_dicts, 
