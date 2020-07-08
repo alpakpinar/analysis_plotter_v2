@@ -12,41 +12,18 @@ import mplhep as hep
 import argparse
 
 from load_data import load_data
+from helper_classes import Style, Selection
 from pprint import pprint
-
 
 pjoin = os.path.join
 
-# Pretty labels for legend for each process
-pretty_labels = {
-    'ZJetsToNuNu' : r'QCD $Z\rightarrow \nu \nu$',
-    'EWKZNuNu'    : r'EWK $Z\rightarrow \nu \nu$',
-    'DYJetsToLL'  : r'QCD $Z\rightarrow \ell \ell$',
-    'EWKZLL'      : r'EWK $Z\rightarrow \ell \ell$',
-    'WJetsToLNu'  : r'QCD $W\rightarrow \ell \nu$',
-    'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
-}
+# Load in the classes holding information about the plots
+sty = Style()
+xlabels       = sty.xlabels
+fig_titles    = sty.fig_titles
+pretty_labels = sty.pretty_labels
 
-xlabels = {
-    'mjj' : r'$M_{jj} \ (GeV)$',
-    'dPhiLeadingJetMet'  : r'$\Delta \Phi (jet0, MET)$',
-    'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$',
-    'dPhiMoreCentralJetMet' : r'$\Delta \Phi (central jet, MET)$',
-    'dPhiMoreForwardJetMet' : r'$\Delta \Phi (forward jet, MET)$',
-    'mindPhiJetMet' : r'$min\Delta \Phi (jet, MET)$',
-    'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$'
-}
-
-# Figure titles for each region
-fig_titles = {
-    'region A' : r'$\Delta \Phi_{jj} > 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
-    'region B' : r'$\Delta \Phi_{jj} > 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
-    'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
-    'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
-    'signal'   : r'$\Delta \Phi_{jj} < 1.5$ (SR Selection)',
-    'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
-    'noCuts' : 'No Additional Cuts'
-}
+sel = Selection()
 
 def parse_cli():
     parser = argparse.ArgumentParser()
@@ -194,46 +171,13 @@ def main():
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
-    # Region definitions for ABCD method
-    # Region A: dphijj > 1.5 & 1.0 < dPhiTrailingJetMet < 2.3
-    # Region B: dphijj > 1.5 & dPhiTrailingJetMet > 2.3
-    # Region C: dphijj < 1.5 & 1.0 < dPhiTrailingJetMet < 2.3
-    # Region D: dphijj < 1.5 & dPhiTrailingJetMet > 2.3
-
-    selections_by_region = {
-        'region A' : [
-            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-            {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
-        ],
-        'region B' : [
-            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-            {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
-        ],
-        'region C' : [
-            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-            {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
-        ],
-        'region D' : [
-            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-            {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
-        ],
-        # Cuts for signal region
-        'signal': [
-            {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
-        ],
-        # Orthogonal to SR, dphijj > 1.5
-        'dphijj_largerThan_1_5' : [
-            {'variable' : 'dphijj', 'low' : 1.5, 'high' : None}
-        ]
-    }
-
     # Pick the relevant selection for the region being specified (if specified)
     if args.region:
         region = args.region
         if region in ['A', 'B', 'C', 'D']:
-            selection_dicts = selections_by_region[f'region {region}']
+            selection_dicts = sel.selections_by_region[f'region {region}']
         else:
-            selection_dicts = selections_by_region[region] 
+            selection_dicts = sel.selections_by_region[region]
     elif (not args.region and args.noCuts):
         region = 'noCuts'
         selection_dicts = None
