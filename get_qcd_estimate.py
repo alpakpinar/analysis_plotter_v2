@@ -14,34 +14,22 @@ import uproot
 from matplotlib import pyplot as plt
 from pprint import pprint
 from stack_plot import stack_plot
+from helper_classes import Style, Selection
 
 pjoin = os.path.join
 
-selections_by_region = {
-    'region A' : [
-        {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-        {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
-    ],
-    'region B' : [
-        {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-        {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
-    ],
-    'region C' : [
-        {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-        {'variable' : 'dPhiTrailingJetMet', 'low' : 1.0, 'high' : 2.3}
-    ],
-    'region D' : [
-        {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-        {'variable' : 'dPhiTrailingJetMet', 'low' : 2.3, 'high' : None}
-    ],
-    'signal': [
-        {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
-    ]
-}
+# Load in the classes holding information about the plots
+sty = Style()
+xlabels       = sty.xlabels
+fig_titles    = sty.fig_titles
+pretty_labels = sty.pretty_labels
+
+sel = Selection()
 
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 05Jul20.', default='05Jul20')
+    parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
     args = parser.parse_args()
     return args
 
@@ -50,9 +38,10 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Call the stack_plot function to get the excess events in each region
     excess_events = {}
     for region in [region1, region2]:
-        selection_dicts = selections_by_region[f'region {region}'] if region != 'noCuts' else None
+        selection_dicts = sel.selections_by_region[f'region {region}'] if region != 'noCuts' else None
         excess_events[region], bins = stack_plot(inpath, outtag, process_list, 
-                                                 csv_file, 
+                                                 csv_file,
+                                                 variable=variable, 
                                                  selection_dicts=selection_dicts,
                                                  region=region
                                                  )
@@ -60,7 +49,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
         # If excess events < 0, can set them to zero since we are not interested with those bins
         excess_events[region][excess_events[region] < 0] = 0.
 
-    # Plot the excess events for each region as a function of mjj
+    # Plot the excess events for each region as a function of the requested variable
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
     hep.histplot(excess_events[region1], bins, ax=ax, label=f'Region {region1}', histtype='step')
     hep.histplot(excess_events[region2], bins, ax=ax, label=f'Region {region2}', histtype='step')
@@ -78,14 +67,14 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     hep.histplot(ratio, bins, ax=rax, histtype='errorbar', **kwargs)
 
     rax.grid(True)
-    rax.set_xlabel(r'$M_{jj} \ (GeV)$')
+    rax.set_xlabel(xlabels[variable])
     rax.set_ylabel(f'{region1} / {region2}')
 
     # Save the figure
     outdir = f'./output/{outtag}/qcd_estimation'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    outfile = f'excess_events_regions_{region1}_{region2}.pdf'
+    outfile = f'excess_events_regions_{region1}_{region2}_{variable}.pdf'
 
     outpath = pjoin(outdir, outfile)
     fig.savefig(outpath)
@@ -110,7 +99,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Return the ratio and the corresponding binning
     return ratio, bins
 
-def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=True):
+def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=False):
     '''
     Using the ratios between several regions, get the QCD estimate for the signal region.
     ==================
@@ -123,24 +112,36 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     variable        : The variable of interest, by defualt it is mjj
     save_to_root    : If set to True, save the results into an output ROOT file
     '''
-    # Here, the QCD estimation is calculated as: (C/A) * B 
-    # First, get the ratio of C/A
-    ratio_C_A, bins = get_ratio_of_excess_data(inpath, outtag, region1='C', region2='A', process_list=process_list, csv_file=csv_file, save_to_root=False)
+    # Here, the QCD estimation is calculated as: (C/B) * A 
+    # First, get the ratio of C/B
+    ratio_C_B, bins = get_ratio_of_excess_data(inpath, outtag, region1='C', region2='B', 
+                                    variable=variable, 
+                                    process_list=process_list, 
+                                    csv_file=csv_file, 
+                                    save_to_root=False
+                                    )
 
-    # Get the excess data events for region B
-    excess_events_B, bins = stack_plot(inpath, outtag, process_list, csv_file, selection_dicts=selections_by_region['region B'], region='B') 
+    # Get the excess data events for region A
+    excess_events_A, bins = stack_plot(inpath, outtag, 
+                                    variable=variable,
+                                    process_list=process_list, 
+                                    csv_file=csv_file, 
+                                    selection_dicts=sel.selections_by_region['region A'], 
+                                    region='A'
+                                    ) 
+                                    
     # If excess events are smaller than 0, just set them to 0 since we're not interested in those
-    excess_events_B[excess_events_B < 0] = 0.
+    excess_events_A[excess_events_A < 0] = 0.
 
     # Get the QCD estimate for region D (region of interest)
-    bad_value = np.isnan(ratio_C_A) | np.isinf(ratio_C_A)
-    qcd_estimation = ratio_C_A * excess_events_B
+    bad_value = np.isnan(ratio_C_B) | np.isinf(ratio_C_B)
+    qcd_estimation = ratio_C_B * excess_events_A
     qcd_estimation[bad_value] = 0.
 
     # Plot the QCD estimation as a function of mjj
     fig, ax = plt.subplots()
     hep.histplot(qcd_estimation, bins, ax=ax, histtype='step')
-    ax.set_xlabel(r'$M_{jj} \ (GeV)$')
+    ax.set_xlabel(xlabels[variable])
     ax.set_ylabel('Events')
     ax.set_yscale('log')
     ax.set_ylim(1e-2,1e3)
@@ -151,23 +152,24 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
-    outpath = pjoin(outdir, 'qcd_estimation.pdf')
+    outpath = pjoin(outdir, f'qcd_estimation_{variable}.pdf')
     fig.savefig(outpath)
     print(f'MSG% File saved: {outpath}')
 
     # Return the QCD estimations and the corresponding binning
     return qcd_estimation, bins
 
-def stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_estimation):
+def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_file, qcd_estimation):
     '''
     Create a stack plot for the signal region with the QCD estimation included.
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
     '''
     # Call the stack_plot function with the QCD estimate included
     region = 'signal'
-    selection_dicts = selections_by_region[region]
+    selection_dicts = sel.selections_by_region[region]
 
-    stack_plot(inpath, outtag, process_list, csv_file, 
+    stack_plot(inpath, outtag, process_list, csv_file,
+               variable=variable, 
                selection_dicts=selection_dicts, 
                region=region, 
                include_qcd_estimation=True, 
@@ -178,12 +180,16 @@ def main():
     args = parse_cli()
 
     # Path to ROOT files, by default use the latest ones (05Jul20), if specified use 30Jun20 instead.
-    if args.version == '05Jul20':
+    version = args.version
+    if version == '05Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
-    elif args.version == '30Jun20':
+    elif version == '30Jun20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
 
-    print(f'MSG% Using trees from version: {args.version}')
+    print(f'MSG% Using trees from version: {version}')
+    variable = args.variable
+    print(f'MSG% Getting templates as a function of: {variable}')
+    
     # Path to CSV file containing XS + sumw information for every dataset
     csv_file = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/csv/xs_sumw.csv'
 
@@ -192,10 +198,19 @@ def main():
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
-    qcd_estimation, bins = get_qcd_estimate(inpath, outtag, process_list, csv_file)
+    qcd_estimation, bins = get_qcd_estimate(inpath, outtag, 
+                                process_list=process_list, 
+                                csv_file=csv_file,
+                                variable=variable
+                                )
 
     # Create a stack plot with QCD estimation included
-    stack_plot_with_qcd_estimation(inpath, outtag, process_list, csv_file, qcd_estimation)
+    stack_plot_with_qcd_estimation(inpath, outtag, 
+                                process_list=process_list, 
+                                csv_file=csv_file, 
+                                variable=variable,
+                                qcd_estimation=qcd_estimation
+                                )
 
 if __name__ == '__main__':
     main()
