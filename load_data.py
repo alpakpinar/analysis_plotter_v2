@@ -82,9 +82,15 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
             # Update the mask with each selection content
             for selection_dict in selection_dicts:
                 variable_to_cut = selection_dict['variable']
+                # Consider the maximum of the neutral EM energy fraction in the leading dijet pair
+                if variable_to_cut == 'max(neEmEF)':
+                    leadak4_neEmEF  = events['leadak4_neEmEF'].array()
+                    trailak4_neEmEF = events['trailak4_neEmEF'].array()
+                    variable_to_cut_arr = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
+                else:
+                    variable_to_cut_arr = events[variable_to_cut].array()
+                # Low and high limits for the cut
                 low_limit, high_limit = selection_dict['low'], selection_dict['high']
-                
-                variable_to_cut_arr = events[variable_to_cut].array()
 
                 if (low_limit is not None) and (high_limit is not None):
                     mask_update = (variable_to_cut_arr > low_limit) & (variable_to_cut_arr < high_limit)
@@ -115,6 +121,8 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
             bins = binning[variable]
         elif re.match('.*dPhi.*', variable):
             bins = np.linspace(0,3.5,50)
+        elif re.match('.*eta.*', variable):
+            bins = np.linspace(-5,5,50)
         else:
             raise RuntimeError(f'No binning found for variable: {variable}')
         h, bins = np.histogram(var, bins=bins, weights=weights)
