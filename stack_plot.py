@@ -34,10 +34,14 @@ def parse_cli():
     parser.add_argument('--variables', help='The list of variables to be plotted, default is mjj.', nargs='*', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
+    parser.add_argument('--include_qcd_mc', help='Include the QCD MC in the stack plot.', action='store_true')
     args = parser.parse_args()
     return args
 
-def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, variable='mjj', include_qcd_estimation=False, qcd_estimation=None):
+def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, 
+        region, variable='mjj', include_qcd_estimation=False, 
+        qcd_estimation=None, include_qcd_mc=False
+        ):
     '''
     Create a stack plot for the processes specified.
     ==================
@@ -53,6 +57,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     include_qcd_estimation : If set to True, include the QCD estimation in the MC stack (False by default).
                              One must provide the QCD estimation as an array if this flag is set to True. 
     qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
+    include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -65,6 +70,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     # Add the QCD estimation to the MC stack if requested
     if include_qcd_estimation:
         histograms['QCD'] = qcd_estimation
+
+    # If we want to include the QCD MC in the stack, add it to the beginning of the process list
+    if include_qcd_mc:
+        process_list.insert(0,'QCD')
 
     for process in process_list:
         print(f'MSG% Obtaining histogram for {process}')
@@ -140,6 +149,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     # Save figure
     if region in ['A', 'B', 'C', 'D'] or include_qcd_estimation:
         outdir = f'./output/{outtag}/qcd_estimation'
+    elif include_qcd_mc:
+        outdir = f'./output/{outtag}/with_qcd_mc'
     else:
         outdir = f'./output/{outtag}'
     if not os.path.exists(outdir):
@@ -198,7 +209,8 @@ def main():
             excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                                 variable=variable,
                                 selection_dicts=selection_dicts, 
-                                region=region
+                                region=region,
+                                include_qcd_mc=args.include_qcd_mc
                                 )
     # The case where only a single variable is specified
     else:
@@ -206,7 +218,8 @@ def main():
         excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                             variable=variable,
                             selection_dicts=selection_dicts, 
-                            region=region
+                            region=region,
+                            include_qcd_mc=args.include_qcd_mc
                             )
 
 if __name__ == '__main__':
