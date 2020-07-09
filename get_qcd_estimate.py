@@ -26,8 +26,10 @@ pretty_labels = sty.pretty_labels
 
 # Set the selection variables and thresholds
 selection_vars = ['dphijj', 'max(neEmEF)']
-thresholds = [1.5, 0.9]
-sel = Selection(variables=selection_vars, thresholds=thresholds)
+# selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
+# thresholds = [1.5, 0.7]
+thresholds = [1.5, 0.8]
+sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True)
 
 def parse_cli():
     parser = argparse.ArgumentParser()
@@ -59,6 +61,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     hep.histplot(excess_events[region2], bins, ax=ax, label=f'Region {region2}', histtype='step')
 
     ax.set_ylabel('Excess number of events')
+    ax.set_yscale('log')
+    ax.set_ylim(1e-1, 1e3)
     ax.legend(title='Regions')
 
     # Calculate and plot the ratio: region1/region2
@@ -73,9 +77,10 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     rax.grid(True)
     rax.set_xlabel(xlabels[variable])
     rax.set_ylabel(f'{region1} / {region2}')
+    rax.set_ylim(0,5)
 
     # Save the figure
-    outdir = f'./output/{outtag}/qcd_estimation'
+    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     outfile = f'excess_events_regions_{region1}_{region2}_{variable}.pdf'
@@ -153,7 +158,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     ax.set_title('QCD Estimation')
     
     # Save figure
-    outdir = f'./output/{outtag}/qcd_estimation'
+    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -170,8 +175,8 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_f
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
     '''
     # Call the stack_plot function with the QCD estimate included
-    region = 'signal'
-    selection_dicts = sel.selections_by_region[region]
+    region = 'D'
+    selection_dicts = sel.selections_by_region[f'region {region}']
 
     stack_plot(inpath, outtag, process_list, csv_file,
                variable=variable, 
