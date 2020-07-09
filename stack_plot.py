@@ -135,7 +135,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
     rax.set_xlim(xlim)
 
     # Save figure
-    outdir = f'./output/{outtag}'
+    if region in ['A', 'B', 'C', 'D'] or include_qcd_estimation:
+        outdir = f'./output/{outtag}/qcd_estimation'
+    else:
+        outdir = f'./output/{outtag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     

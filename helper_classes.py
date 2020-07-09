@@ -21,10 +21,10 @@ class Style:
 
         # List of figure titles for each region
         self.fig_titles = {
-            'region A' : r'$\Delta \Phi_{jj} > 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
-            'region B' : r'$\Delta \Phi_{jj} > 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
-            'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $1.0 < \Delta \Phi(jet1,MET) < 2.3$',
-            'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $\Delta \Phi(jet1,MET) > 2.3$',
+            'region A' : r'$\Delta \Phi_{jj} > 1.5$ & $max(neEmEF) < 0.8$',
+            'region B' : r'$\Delta \Phi_{jj} > 1.5$ & $max(neEmEF) > 0.8$',
+            'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $max(neEmEF) > 0.8$',
+            'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $max(neEmEF) < 0.8$',
             'signal'   : r'$\Delta \Phi_{jj} < 1.5$ (SR Selection)',
             'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
             'noCuts' : 'No Additional Cuts'
