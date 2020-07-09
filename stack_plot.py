@@ -17,16 +17,20 @@ from pprint import pprint
 
 pjoin = os.path.join
 
-# Load in the classes holding information about the plots
-sty = Style()
-xlabels       = sty.xlabels
-fig_titles    = sty.fig_titles
-pretty_labels = sty.pretty_labels
+def load_style_and_selection():
+    '''
+    Load classes that contain information about plotting style and selections.
+    This function will only be called if this script is the main script being called.
+    '''
+    # Load in the classes holding information about the plots
+    sty = Style()
 
-# Set the selection variables and thresholds
-selection_vars = ['dphijj', 'max(neEmEF)']
-thresholds = [1.5, 0.8]
-sel = Selection(variables=selection_vars, thresholds=thresholds)
+    # Set the selection variables and thresholds
+    selection_vars = ['dphijj', 'max(neEmEF)']
+    thresholds = [1.5, 0.8]
+    sel = Selection(variables=selection_vars, thresholds=thresholds)
+
+    return sty, sel
 
 def parse_cli():
     parser = argparse.ArgumentParser()
@@ -39,7 +43,7 @@ def parse_cli():
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, 
-        region, variable='mjj', include_qcd_estimation=False,  
+        sty, sel, region, variable='mjj', include_qcd_estimation=False,  
         qcd_estimation=None, include_qcd_mc=False
         ):
     '''
@@ -52,6 +56,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     process_list           : List of physics processes to be plotted
     csv_file               : The CSV file containing XS + sumw information for each dataset
     selection_dicts        : List of dictionaries, each containing information about a selection.
+    sty                    : The Style object to be passed in for plotting.
+    sel                    : The Selection object to be passed in for plotting.
     region                 : Region to be plotted (A,B,C or D for ABCD method).
     variable               : The variable of interest, by defualt it is mjj.
     include_qcd_estimation : If set to True, include the QCD estimation in the MC stack (False by default).
@@ -94,8 +100,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     for process in process_list:
         if process == 'MET':
             continue
-        if process in pretty_labels.keys():
-            labels.append(pretty_labels[process])
+        if process in sty.pretty_labels.keys():
+            labels.append(sty.pretty_labels[process])
         else:
             labels.append(process)
 
@@ -114,9 +120,9 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     ax.set_ylim(1e-3, 1e5)    
 
     if region in ['A', 'B', 'C', 'D']:
-        ax.set_title(fig_titles[f'region {region}'])
+        ax.set_title(sty.fig_titles[f'region {region}'])
     else:
-        ax.set_title(fig_titles[region])
+        ax.set_title(sty.fig_titles[region])
 
     # Aesthetics: Put edge colors
     handles, labels = ax.get_legend_handles_labels()
@@ -133,7 +139,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
 
     rax.set_ylabel('Data / MC')
     rax.set_ylim(0.5,1.5)
-    rax.set_xlabel(xlabels[variable])
+    rax.set_xlabel(sty.xlabels[variable])
 
     loc1 = matplotlib.ticker.MultipleLocator(base=0.2)
     loc2 = matplotlib.ticker.MultipleLocator(base=0.1)
@@ -174,6 +180,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
 
 def main():
     args = parse_cli()
+    sty, sel = load_style_and_selection()
+
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
     if args.version == '09Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
@@ -209,6 +217,7 @@ def main():
         for variable in args.variables:
             excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                                 variable=variable,
+                                sty=sty, sel=sel,
                                 selection_dicts=selection_dicts, 
                                 region=region,
                                 include_qcd_mc=args.include_qcd_mc
@@ -218,6 +227,7 @@ def main():
         variable = args.variables
         excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                             variable=variable,
+                            sty=sty, sel=sel,
                             selection_dicts=selection_dicts, 
                             region=region,
                             include_qcd_mc=args.include_qcd_mc

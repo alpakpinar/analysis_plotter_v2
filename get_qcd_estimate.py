@@ -26,7 +26,7 @@ pretty_labels = sty.pretty_labels
 
 # Set the selection variables and thresholds
 selection_vars = ['dphijj', 'max(neEmEF)']
-thresholds = [1.5, 0.8]
+thresholds = [1.5, 0.9]
 sel = Selection(variables=selection_vars, thresholds=thresholds)
 
 def parse_cli():
@@ -44,7 +44,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
         selection_dicts = sel.selections_by_region[f'region {region}'] if region != 'noCuts' else None
         excess_events[region], bins = stack_plot(inpath, outtag, process_list, 
                                                  csv_file,
-                                                 variable=variable, 
+                                                 variable=variable,
+                                                 sel=sel, sty=sty, 
                                                  selection_dicts=selection_dicts,
                                                  region=region
                                                  )
@@ -127,7 +128,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     # Get the excess data events for region A
     excess_events_A, bins = stack_plot(inpath, outtag, 
                                     variable=variable,
-                                    process_list=process_list, 
+                                    process_list=process_list,
+                                    sel=sel, sty=sty, 
                                     csv_file=csv_file, 
                                     selection_dicts=sel.selections_by_region['region A'], 
                                     region='A'
@@ -174,6 +176,7 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_f
     stack_plot(inpath, outtag, process_list, csv_file,
                variable=variable, 
                selection_dicts=selection_dicts, 
+               sel=sel, sty=sty,
                region=region, 
                include_qcd_estimation=True, 
                qcd_estimation=qcd_estimation
