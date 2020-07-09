@@ -39,7 +39,7 @@ def parse_cli():
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, 
-        region, variable='mjj', include_qcd_estimation=False, 
+        region, variable='mjj', include_qcd_estimation=False,  
         qcd_estimation=None, include_qcd_mc=False
         ):
     '''
@@ -148,7 +148,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
 
     # Save figure
     if region in ['A', 'B', 'C', 'D'] or include_qcd_estimation:
-        outdir = f'./output/{outtag}/qcd_estimation'
+        selection_tag = sel.selection_tag
+        outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}'
     elif include_qcd_mc:
         outdir = f'./output/{outtag}/with_qcd_mc'
     else:

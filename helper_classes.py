@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import re
+
 class Style:
     def __init__(self):
         # List of x-labels for each variable
@@ -84,3 +86,11 @@ class Selection:
                 {'variable' : first_variable, 'low' : first_thresh, 'high' : None}
             ]
         }
+
+        # Selection tag for output saving
+        # Cleanup the dots/parantheses
+        first_thresh_tag = re.sub('\.', '_', str(first_thresh))
+        second_thresh_tag = re.sub('\.', '_', str(second_thresh))
+        first_variable_tag = re.sub('\(|\)', '', first_variable)
+        second_variable_tag = re.sub('\(|\)', '', second_variable)
+        self.selection_tag = f'{first_variable_tag}_{first_thresh_tag}_{second_variable_tag}_{second_thresh_tag}'
