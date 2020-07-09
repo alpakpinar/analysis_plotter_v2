@@ -31,7 +31,7 @@ sel = Selection(variables=selection_vars, thresholds=thresholds)
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 05Jul20.', default='05Jul20')
+    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
     parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
     args = parser.parse_args()
     return args
@@ -182,9 +182,11 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_f
 def main():
     args = parse_cli()
 
-    # Path to ROOT files, by default use the latest ones (05Jul20), if specified use 30Jun20 instead.
+    # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 05Jul20 or 30Jun20 instead.
     version = args.version
-    if version == '05Jul20':
+    if version == '09Jul20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
+    elif version == '05Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
     elif version == '30Jun20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
