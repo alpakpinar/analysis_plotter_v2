@@ -33,7 +33,7 @@ def parse_cli():
     args = parser.parse_args()
     return args
 
-def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, variable='mjj', save_to_root=True):    
+def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, variable='mjj', save_to_root=False):    
     '''Get the ratio of excess data events (over MC) in two regions, region1 and region2.'''
     # Call the stack_plot function to get the excess events in each region
     excess_events = {}
@@ -135,8 +135,9 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
 
     # Get the QCD estimate for region D (region of interest)
     bad_value = np.isnan(ratio_C_B) | np.isinf(ratio_C_B)
+    ratio_C_B = np.where(bad_value, 1, ratio_C_B)
+    print(ratio_C_B)
     qcd_estimation = ratio_C_B * excess_events_A
-    qcd_estimation[bad_value] = 0.
 
     # Plot the QCD estimation as a function of mjj
     fig, ax = plt.subplots()
