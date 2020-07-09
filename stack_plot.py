@@ -27,6 +27,7 @@ def load_style_and_selection():
 
     # Set the selection variables and thresholds
     selection_vars = ['dphijj', 'max(neEmEF)']
+    # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
     thresholds = [1.5, 0.8]
     sel = Selection(variables=selection_vars, thresholds=thresholds)
 
@@ -117,7 +118,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     ax.legend()
     ax.set_ylabel('Events / Bin Width')
     ax.set_yscale('log')
-    ax.set_ylim(1e-3, 1e5)    
+    ax.set_ylim(1e-3, 1e8)    
 
     if region in ['A', 'B', 'C', 'D']:
         ax.set_title(sty.fig_titles[f'region {region}'])

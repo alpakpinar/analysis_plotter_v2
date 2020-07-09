@@ -11,6 +11,7 @@ class Style:
             'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$',
             'dPhiMoreCentralJetMet' : r'$\Delta \Phi (central jet, MET)$',
             'dPhiMoreForwardJetMet' : r'$\Delta \Phi (forward jet, MET)$',
+            'dPhi_TkMET_PFMET' : r'$\Delta \Phi (TK MET, PF MET)$',
             'mindPhiJetMet' : r'$min\Delta \Phi (jet, MET)$',
             'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$',
             'leadak4_eta'   : r'Leading Jet $\eta$',
@@ -43,7 +44,7 @@ class Style:
         }
 
 class Selection:
-    def __init__(self, variables, thresholds):
+    def __init__(self, variables, thresholds, apply_recoil_cut=False):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
@@ -86,6 +87,12 @@ class Selection:
                 {'variable' : first_variable, 'low' : first_thresh, 'high' : None}
             ]
         }
+
+        # Apply additional recoil>250 GeV cut if requested
+        if apply_recoil_cut:
+            for region in self.selections_by_region.keys():
+                recoil_cut = {'variable' : 'recoil_pt', 'low' : 250, 'high' : None}
+                self.selections_by_region[region].append(recoil_cut)
 
         # Selection tag for output saving
         # Cleanup the dots/parantheses
