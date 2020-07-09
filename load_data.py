@@ -123,6 +123,9 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
             bins = np.linspace(0,3.5,50)
         elif re.match('.*eta.*', variable):
             bins = np.linspace(-5,5,50)
+        # Binning for jet energy fractions
+        elif re.match('.*ak4.*EF', variable):
+            bins = np.linspace(0,1,50)
         else:
             raise RuntimeError(f'No binning found for variable: {variable}')
         h, bins = np.histogram(var, bins=bins, weights=weights)

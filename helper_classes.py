@@ -11,8 +11,12 @@ class Style:
             'dPhiMoreForwardJetMet' : r'$\Delta \Phi (forward jet, MET)$',
             'mindPhiJetMet' : r'$min\Delta \Phi (jet, MET)$',
             'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$',
-            'leadak4_eta'  : r'Leading Jet $\eta$',
-            'trailak4_eta' : r'Trailing Jet $\eta$'
+            'leadak4_eta'   : r'Leading Jet $\eta$',
+            'trailak4_eta'  : r'Trailing Jet $\eta$',
+            'leadak4_neHEF'   : 'Leading Jet Neutral Hadron Fraction',
+            'trailak4_neHEF'  : 'Trailing Jet Neutral Hadron Fraction',
+            'leadak4_neEmEF'  : 'Leading Jet Neutral EM Fraction',
+            'trailak4_neEmEF' : 'Trailing Jet Neutral EM Fraction'
         }
 
         # List of figure titles for each region
