@@ -136,7 +136,6 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     # Get the QCD estimate for region D (region of interest)
     bad_value = np.isnan(ratio_C_B) | np.isinf(ratio_C_B)
     ratio_C_B = np.where(bad_value, 1, ratio_C_B)
-    print(ratio_C_B)
     qcd_estimation = ratio_C_B * excess_events_A
 
     # Plot the QCD estimation as a function of mjj

@@ -27,7 +27,7 @@ sel = Selection()
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 05Jul20.', default='05Jul20')
+    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
     parser.add_argument('--variables', help='The list of variables to be plotted, default is mjj.', nargs='*', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
@@ -159,8 +159,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, region, 
 
 def main():
     args = parse_cli()
-    # Path to ROOT files, by default use the latest ones (05Jul20), if specified use 30Jun20 instead.
-    if args.version == '05Jul20':
+    # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
+    if args.version == '09Jul20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
+    elif args.version == '05Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
     elif args.version == '30Jun20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
