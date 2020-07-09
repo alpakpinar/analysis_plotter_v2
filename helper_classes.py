@@ -41,44 +41,46 @@ class Style:
         }
 
 class Selection:
-    def __init__(self):
+    def __init__(self, variables, thresholds):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
         for cutting. One of the limits can be None.
         '''
         # For the ABCD method, there should be two variables being used
-        # assert len(variables)   == 2
-        # assert len(low_limits)  == 2
-        # assert len(high_limits) == 2
-        # self.variables   = variables
-        # self.low_limits  = low_limits
-        # self.high_limits = high_limits
+        assert len(variables)   == 2
+        assert len(thresholds)  == 2
+        self.variables   = variables
+        self.thresholds  = thresholds
+
+        first_variable, second_variable = self.variables
+        first_thresh, second_thresh = self.thresholds
 
         self.selections_by_region = {
             # Regions for ABCD method
             'region A' : [
-                {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-                {'variable' : 'max(neEmEF)', 'low' : None, 'high' : 0.8}
+                {'variable' : first_variable, 'low' : first_thresh, 'high' : None},
+                {'variable' : second_variable, 'low' : None, 'high' : second_thresh}
             ],
             'region B' : [
-                {'variable' : 'dphijj', 'low' : 1.5, 'high' : None},
-                {'variable' : 'max(neEmEF)', 'low' : 0.8, 'high' : None}
+                {'variable' : first_variable, 'low' : first_thresh, 'high' : None},
+                {'variable' : second_variable, 'low' : second_thresh, 'high' : None}
             ],
             'region C' : [
-                {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-                {'variable' : 'max(neEmEF)', 'low' : 0.8, 'high' : None}
+                {'variable' : first_variable, 'low' : None, 'high' : first_thresh},
+                {'variable' : second_variable, 'low' : second_thresh, 'high' : None}
             ],
             'region D' : [
-                {'variable' : 'dphijj', 'low' : None, 'high' : 1.5},
-                {'variable' : 'max(neEmEF)', 'low' : None, 'high' : 0.8}
+                {'variable' : first_variable, 'low' : None, 'high' : first_thresh},
+                {'variable' : second_variable, 'low' : None, 'high' : second_thresh}
             ],
             # Signal region selection: dphijj < 1.5
             'signal': [
-                {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
+                {'variable' : first_variable, 'low' : None, 'high' : first_thresh}
+                # {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
             ],
             # Orthogonal to SR, dphijj > 1.5
             'dphijj_largerThan_1_5' : [
-                {'variable' : 'dphijj', 'low' : 1.5, 'high' : None}
+                {'variable' : first_variable, 'low' : first_thresh, 'high' : None}
             ]
         }

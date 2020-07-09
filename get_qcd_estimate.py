@@ -24,7 +24,10 @@ xlabels       = sty.xlabels
 fig_titles    = sty.fig_titles
 pretty_labels = sty.pretty_labels
 
-sel = Selection()
+# Set the selection variables and thresholds
+selection_vars = ['dphijj', 'max(neEmEF)']
+thresholds = [1.5, 0.8]
+sel = Selection(variables=selection_vars, thresholds=thresholds)
 
 def parse_cli():
     parser = argparse.ArgumentParser()
