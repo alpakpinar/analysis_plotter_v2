@@ -45,7 +45,7 @@ def parse_cli():
 
 def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, 
         sty, sel, region, variable='mjj', include_qcd_estimation=False,  
-        qcd_estimation=None, include_qcd_mc=False
+        qcd_estimation=None, include_qcd_mc=False, coarse_eta_binning=False
         ):
     '''
     Create a stack plot for the processes specified.
@@ -65,6 +65,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
                              One must provide the QCD estimation as an array if this flag is set to True. 
     qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
     include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
+    coarse_eta_binning     : If set to True, a coarser eta binning will be used, mainly used for the TF calculation in QCD estimation
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -84,7 +85,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
 
     for process in process_list:
         print(f'MSG% Obtaining histogram for {process}')
-        h, bins = load_data(inpath, process, csv_file, variable, selection_dicts)
+        # Load the data from ROOT files: Get the histograms for each process + binning
+        # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
+        h, bins = load_data(inpath, process, csv_file, variable, selection_dicts, coarse_eta_binning=coarse_eta_binning)
+
         if process != 'MET':
             histograms[process] = h
         else:

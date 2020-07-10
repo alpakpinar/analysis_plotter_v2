@@ -27,7 +27,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, selection_dicts=None):
+def load_data(inpath, process, csv_file, variable, selection_dicts=None, coarse_eta_binning=False):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -120,12 +120,16 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None):
         if variable in binning.keys():
             bins = binning[variable]
         elif re.match('.*dPhi.*', variable):
-            bins = np.linspace(0,3.5,50)
+            bins = np.linspace(0,3.5,51)
         elif re.match('.*eta.*', variable):
-            bins = np.linspace(-5,5,50)
+            # Use a coarse eta binning if requested
+            if coarse_eta_binning:
+                bins = list(range(-5,6))
+            else:
+                bins = np.linspace(-5,5,51)
         # Binning for jet energy fractions
         elif re.match('.*ak4.*EF', variable):
-            bins = np.linspace(0,1,50)
+            bins = np.linspace(0,1,51)
         else:
             raise RuntimeError(f'No binning found for variable: {variable}')
         h, bins = np.histogram(var, bins=bins, weights=weights)

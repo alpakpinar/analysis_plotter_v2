@@ -35,10 +35,13 @@ def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
     parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
+    parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, coarse is used.', default='coarse')
     args = parser.parse_args()
     return args
 
-def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, variable='mjj', save_to_root=False):    
+def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, 
+            csv_file, variable='mjj', save_to_root=False, coarse_eta_binning=False
+            ):    
     '''Get the ratio of excess data events (over MC) in two regions, region1 and region2.'''
     # Call the stack_plot function to get the excess events in each region
     excess_events = {}
@@ -49,11 +52,13 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
                                                  variable=variable,
                                                  sel=sel, sty=sty, 
                                                  selection_dicts=selection_dicts,
-                                                 region=region
+                                                 region=region,
+                                                 coarse_eta_binning=coarse_eta_binning
                                                  )
 
         # If excess events < 0, can set them to zero since we are not interested with those bins
         excess_events[region][excess_events[region] < 0] = 0.
+
 
     # Plot the excess events for each region as a function of the requested variable
     fig, (ax, rax) = plt.subplots(2, 1, figsize=(7,7), gridspec_kw={"height_ratios": (3, 1)}, sharex=True)
@@ -108,27 +113,33 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Return the ratio and the corresponding binning
     return ratio, bins
 
-def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=False):
+def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=False, coarse_eta_binning=False):
     '''
     Using the ratios between several regions, get the QCD estimate for the signal region.
     ==================
     ARGUMENTS:
     ==================
-    inpath          : The path containing input ROOT files
-    outtag          : Output tag to name the output directory 
-    process_list    : List of physics processes to be plotted 
-    csv_file        : The CSV file containing XS + sumw information for each dataset
-    variable        : The variable of interest, by defualt it is mjj
-    save_to_root    : If set to True, save the results into an output ROOT file
+    inpath               : The path containing input ROOT files
+    outtag               : Output tag to name the output directory 
+    process_list         : List of physics processes to be plotted 
+    csv_file             : The CSV file containing XS + sumw information for each dataset
+    variable             : The variable of interest, by defualt it is mjj
+    save_to_root         : If set to True, save the results into an output ROOT file
+    coarse_eta_binning   : If set to True, a coarser eta binning will be used, mainly used for the TF calculation in QCD estimation
     '''
     # Here, the QCD estimation is calculated as: (C/B) * A 
-    # First, get the ratio of C/B
+    # First, get the ratio of C/B, use coarser eta binning for the ratio (to smooth the TF) if requested
     ratio_C_B, bins = get_ratio_of_excess_data(inpath, outtag, region1='C', region2='B', 
                                     variable=variable, 
                                     process_list=process_list, 
                                     csv_file=csv_file, 
-                                    save_to_root=False
+                                    save_to_root=False,
+                                    coarse_eta_binning=coarse_eta_binning
                                     )
+    # If coarser eta binning is used, resize the ratio array by repetition so that its compatible 
+    # to use in arithmetic operations with the other histograms
+    if coarse_eta_binning:
+        ratio_C_B = np.repeat(ratio_C_B,5)
 
     # Get the excess data events for region A
     excess_events_A, bins = stack_plot(inpath, outtag, 
@@ -214,7 +225,8 @@ def main():
     qcd_estimation, bins = get_qcd_estimate(inpath, outtag, 
                                 process_list=process_list, 
                                 csv_file=csv_file,
-                                variable=variable
+                                variable=variable,
+                                coarse_eta_binning=(args.eta_binning == 'coarse')
                                 )
 
     # Create a stack plot with QCD estimation included
