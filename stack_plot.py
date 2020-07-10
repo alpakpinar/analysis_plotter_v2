@@ -43,8 +43,8 @@ def parse_cli():
     args = parser.parse_args()
     return args
 
-def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, 
-        sty, sel, region, variable='mjj', include_qcd_estimation=False,  
+def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel, region, 
+        variable='mjj', include_qcd_estimation=False, plot_signal=True,
         qcd_estimation=None, include_qcd_mc=False, coarse_eta_binning=False
         ):
     '''
@@ -63,6 +63,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     variable               : The variable of interest, by defualt it is mjj.
     include_qcd_estimation : If set to True, include the QCD estimation in the MC stack (False by default).
                              One must provide the QCD estimation as an array if this flag is set to True. 
+    plot_signal            : If set to True, include the signal MC template in the stack plot (True by default)
     qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
     include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
     coarse_eta_binning     : If set to True, a coarser eta binning will be used, mainly used for the TF calculation in QCD estimation
@@ -119,10 +120,16 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     }
     data = np.vstack(data.values())
     hep.histplot(data, bins, ax=ax, label='Data', binwnorm=True, histtype='errorbar', **kwargs)
-    ax.legend()
     ax.set_ylabel('Events / Bin Width')
     ax.set_yscale('log')
     ax.set_ylim(1e-3, 1e8)    
+
+    # Include signal in the plot if requested
+    if plot_signal:
+        signal, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable=variable, 
+                selection_dicts=selection_dicts, coarse_eta_binning=coarse_eta_binning
+                )
+        hep.histplot(signal, bins, ax=ax, label='VBF Signal', binwnorm=True, histtype='step')
 
     if region in ['A', 'B', 'C', 'D']:
         ax.set_title(sty.fig_titles[f'region {region}'])
@@ -134,8 +141,14 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts,
     for handle, label in zip(handles, labels):
         if label == 'Data':
             continue
+        elif label == 'VBF Signal':
+            handle.set_color('k')
+            handle.set_linewidth(2)
+            continue
         handle.set_linestyle('-')
         handle.set_edgecolor('k')
+
+    ax.legend()
 
     # Plot the data/MC ratio
     total_mc = np.sum(stacked_histos, axis=0)
