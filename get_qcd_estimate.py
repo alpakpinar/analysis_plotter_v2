@@ -154,6 +154,27 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     # If excess events are smaller than 0, just set them to 0 since we're not interested in those
     excess_events_A[excess_events_A < 0] = 0.
 
+    # Plot the excess events in region A and save
+    fig, ax = plt.subplots()
+    hep.histplot(excess_events_A, bins, ax=ax, histtype='step')
+
+    ax.set_ylabel('Excess Number of Events')
+    ax.set_xlabel(xlabels[variable])
+    ax.set_title('Region A')
+
+    ax.set_yscale('log')
+    ax.set_ylim(1e-1, 1e4)
+
+    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    outfile = f'excess_events_regionA_{variable}.pdf'
+    outpath = pjoin(outdir, outfile)
+    fig.savefig(outpath)
+    print(f'MSG% File saved: {outpath}')
+    plt.close(fig)
+
     # Get the QCD estimate for region D (region of interest)
     bad_value = np.isnan(ratio_C_B) | np.isinf(ratio_C_B)
     ratio_C_B = np.where(bad_value, 1, ratio_C_B)
