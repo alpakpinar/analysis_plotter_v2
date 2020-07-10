@@ -45,7 +45,7 @@ def parse_cli():
 
 def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True,
-        qcd_estimation=None, include_qcd_mc=False, coarse_eta_binning=False
+        qcd_estimation=None, include_qcd_mc=False, eta_binning='very fine'
         ):
     '''
     Create a stack plot for the processes specified.
@@ -66,7 +66,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
     plot_signal            : If set to True, include the signal MC template in the stack plot (True by default)
     qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
     include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
-    coarse_eta_binning     : If set to True, a coarser eta binning will be used, mainly used for the TF calculation in QCD estimation
+    eta_binning            : The eta binning to be used for the TF calculation in ABCD method, defaults to "very fine"
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -88,7 +88,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
         print(f'MSG% Obtaining histogram for {process}')
         # Load the data from ROOT files: Get the histograms for each process + binning
         # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
-        h, bins = load_data(inpath, process, csv_file, variable, selection_dicts, coarse_eta_binning=coarse_eta_binning)
+        h, bins = load_data(inpath, process, csv_file, variable, selection_dicts, eta_binning=eta_binning)
 
         if process != 'MET':
             histograms[process] = h
@@ -126,9 +126,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
 
     # Include signal in the plot if requested
     if plot_signal:
-        signal, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable=variable, 
-                selection_dicts=selection_dicts, coarse_eta_binning=coarse_eta_binning
-                )
+        signal, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable=variable, selection_dicts=selection_dicts, eta_binning=eta_binning)
         hep.histplot(signal, bins, ax=ax, label='VBF Signal', binwnorm=True, histtype='step')
 
     if region in ['A', 'B', 'C', 'D']:

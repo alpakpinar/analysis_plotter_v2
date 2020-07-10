@@ -19,6 +19,13 @@ dataset_mapping = {
     'EWKZNuNu' : re.compile('tree_EWKZ.*ZToNuNu.*')
 }
 
+# Several different eta binnings for TF calculation in ABCD method
+eta_binnings = {
+    'very fine' : np.linspace(-5,5,51),
+    'fine' : list(range(-5,6)),   
+    'coarse' : list(range(-5,6,2)),
+}
+
 def get_data_from_csv(csv_file):
     '''Load data from the input CSV file: XS+sumw for each MC'''
     with open(csv_file, 'r') as f:
@@ -27,7 +34,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, selection_dicts=None, coarse_eta_binning=False):
+def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_binning='very fine'):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -121,12 +128,9 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, coarse_
             bins = binning[variable]
         elif re.match('.*dPhi.*', variable):
             bins = np.linspace(0,3.5,51)
+        # Get the eta binning to be used (could be different for ABCD method calculations)
         elif re.match('.*eta.*', variable):
-            # Use a coarse eta binning if requested
-            if coarse_eta_binning:
-                bins = list(range(-5,6))
-            else:
-                bins = np.linspace(-5,5,51)
+            bins = eta_binnings[eta_binning]
         # Binning for jet energy fractions
         elif re.match('.*ak4.*EF', variable):
             bins = np.linspace(0,1,51)
