@@ -27,20 +27,20 @@ pretty_labels = sty.pretty_labels
 # Set the selection variables and thresholds
 selection_vars = ['dphijj', 'max(neEmEF)']
 # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
-# thresholds = [1.5, 0.7]
-thresholds = [1.5, 0.8]
+thresholds = [1.5, 0.7]
+# thresholds = [1.5, 0.8]
 sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True)
 
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
     parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
-    parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, coarse is used.', default='coarse')
+    parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, very_fine is used.', default='very_fine')
     args = parser.parse_args()
     return args
 
-def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, 
-            csv_file, variable='mjj', save_to_root=False, eta_binning='very fine'
+def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, 
+            variable='mjj', save_to_root=False, eta_binning='very_fine', output_dir_tag=None
             ):    
     '''Get the ratio of excess data events (over MC) in two regions, region1 and region2.'''
     # Call the stack_plot function to get the excess events in each region
@@ -53,7 +53,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list,
                                                  sel=sel, sty=sty, 
                                                  selection_dicts=selection_dicts,
                                                  region=region,
-                                                 eta_binning=eta_binning
+                                                 eta_binning=eta_binning,
+                                                 output_dir_tag=output_dir_tag
                                                  )
 
         # If excess events < 0, can set them to zero since we are not interested with those bins
@@ -85,7 +86,10 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list,
     rax.set_ylim(0,5)
 
     # Save the figure
-    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+    if output_dir_tag:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+    else:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     outfile = f'excess_events_regions_{region1}_{region2}_{variable}.pdf'
@@ -113,7 +117,9 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list,
     # Return the ratio and the corresponding binning
     return ratio, bins
 
-def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', save_to_root=False, eta_binning='very fine'):
+def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', 
+                save_to_root=False, eta_binning='very_fine', output_dir_tag=None
+                ):
     '''
     Using the ratios between several regions, get the QCD estimate for the signal region.
     ==================
@@ -125,7 +131,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     csv_file         : The CSV file containing XS + sumw information for each dataset
     variable         : The variable of interest, by defualt it is mjj
     save_to_root     : If set to True, save the results into an output ROOT file
-    eta_binning      : The eta binning to be used for the TF calculation in ABCD method, defaults to "very fine"
+    eta_binning      : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
+    output_dir_tag   : The tag to be used for output directory naming, has information about the eta binning used in C/B calculation.
     '''
     # Here, the QCD estimation is calculated as: (C/B) * A 
     # First, get the ratio of C/B, use coarser eta binning for the ratio (to smooth the TF) if requested
@@ -134,7 +141,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
                                     process_list=process_list, 
                                     csv_file=csv_file, 
                                     save_to_root=False,
-                                    eta_binning=eta_binning
+                                    eta_binning=eta_binning,
+                                    output_dir_tag=output_dir_tag
                                     )
     # If coarser eta binning is used, resize the ratio array by repetition so that its compatible 
     # to use in arithmetic operations with the other histograms
@@ -149,7 +157,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
                                     sel=sel, sty=sty, 
                                     csv_file=csv_file, 
                                     selection_dicts=sel.selections_by_region['region A'], 
-                                    region='A'
+                                    region='A',
+                                    output_dir_tag=output_dir_tag
                                     ) 
                                     
     # If excess events are smaller than 0, just set them to 0 since we're not interested in those
@@ -166,7 +175,10 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     ax.set_yscale('log')
     ax.set_ylim(1e-1, 1e4)
 
-    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+    if output_dir_tag:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+    else:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
@@ -191,7 +203,10 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     ax.set_title('QCD Estimation')
     
     # Save figure
-    outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+    if output_dir_tag:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+    else:
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -202,7 +217,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', sav
     # Return the QCD estimations and the corresponding binning
     return qcd_estimation, bins
 
-def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_file, qcd_estimation):
+def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_file, qcd_estimation, output_dir_tag=None):
     '''
     Create a stack plot for the signal region with the QCD estimation included.
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
@@ -217,7 +232,8 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_f
                sel=sel, sty=sty,
                region=region, 
                include_qcd_estimation=True, 
-               qcd_estimation=qcd_estimation
+               qcd_estimation=qcd_estimation,
+               output_dir_tag=output_dir_tag
                )
 
 def main():
@@ -244,11 +260,17 @@ def main():
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
+    # Eta binning to be used in transfer factor calculation
+    eta_binning = args.eta_binning
+    # Plots will go into this output dir
+    output_dir_tag = f'tf_eta_binning_{eta_binning}'
+
     qcd_estimation, bins = get_qcd_estimate(inpath, outtag, 
                                 process_list=process_list, 
                                 csv_file=csv_file,
                                 variable=variable,
-                                eta_binning=args.eta_binning 
+                                eta_binning=eta_binning,
+                                output_dir_tag=output_dir_tag
                                 )
 
     # Create a stack plot with QCD estimation included
@@ -256,7 +278,8 @@ def main():
                                 process_list=process_list, 
                                 csv_file=csv_file, 
                                 variable=variable,
-                                qcd_estimation=qcd_estimation
+                                qcd_estimation=qcd_estimation,
+                                output_dir_tag=output_dir_tag
                                 )
 
 if __name__ == '__main__':

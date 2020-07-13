@@ -21,7 +21,7 @@ dataset_mapping = {
 
 # Several different eta binnings for TF calculation in ABCD method
 eta_binnings = {
-    'very fine' : np.linspace(-5,5,51),
+    'very_fine' : np.linspace(-5,5,51),
     'fine' : list(range(-5,6)),   
     'coarse' : list(range(-5,6,2)),
 }
@@ -34,7 +34,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_binning='very fine'):
+def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_binning='very_fine'):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 

@@ -44,8 +44,8 @@ def parse_cli():
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel, region, 
-        variable='mjj', include_qcd_estimation=False, plot_signal=True,
-        qcd_estimation=None, include_qcd_mc=False, eta_binning='very fine'
+        variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
+        include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None
         ):
     '''
     Create a stack plot for the processes specified.
@@ -66,7 +66,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
     plot_signal            : If set to True, include the signal MC template in the stack plot (True by default)
     qcd_estimation         : If include_qcd_estimation is set to True, provide the QCD estimation as an array (None by default).
     include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
-    eta_binning            : The eta binning to be used for the TF calculation in ABCD method, defaults to "very fine"
+    eta_binning            : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
+    output_dir_tag         : The tag to be used for the naming of the output directory, depending on the eta binning being used in TF calculation.
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -171,7 +172,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
     # Save figure
     if region in ['A', 'B', 'C', 'D'] or include_qcd_estimation:
         selection_tag = sel.selection_tag
-        outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}'
+        if output_dir_tag:
+            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{output_dir_tag}'
+        else:
+            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}'
     elif include_qcd_mc:
         outdir = f'./output/{outtag}/with_qcd_mc'
     else:
