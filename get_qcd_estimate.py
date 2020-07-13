@@ -21,7 +21,6 @@ pjoin = os.path.join
 # Load in the classes holding information about the plots
 sty = Style()
 xlabels       = sty.xlabels
-fig_titles    = sty.fig_titles
 pretty_labels = sty.pretty_labels
 
 # Set the selection variables and thresholds
@@ -30,6 +29,7 @@ selection_vars = ['dphijj', 'max(neEmEF)']
 thresholds = [1.5, 0.7]
 # thresholds = [1.5, 0.8]
 sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True)
+fig_titles    = sel.fig_titles
 
 def parse_cli():
     parser = argparse.ArgumentParser()
@@ -199,7 +199,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     ax.set_xlabel(xlabels[variable])
     ax.set_ylabel('Events')
     ax.set_yscale('log')
-    ax.set_ylim(1e-2,1e3)
+    ax.set_ylim(1e-2,1e5)
     ax.set_title('QCD Estimation')
     
     # Save figure

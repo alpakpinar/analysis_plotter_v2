@@ -22,17 +22,6 @@ class Style:
             'trailak4_neEmEF' : 'Trailing Jet Neutral EM Fraction'
         }
 
-        # List of figure titles for each region
-        self.fig_titles = {
-            'region A' : r'$\Delta \Phi_{jj} > 1.5$ & $max(neEmEF) < 0.8$',
-            'region B' : r'$\Delta \Phi_{jj} > 1.5$ & $max(neEmEF) > 0.8$',
-            'region C' : r'$\Delta \Phi_{jj} < 1.5$ & $max(neEmEF) > 0.8$',
-            'region D' : r'$\Delta \Phi_{jj} < 1.5$ & $max(neEmEF) < 0.8$',
-            'signal'   : r'$\Delta \Phi_{jj} < 1.5$ (SR Selection)',
-            'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
-            'noCuts' : 'No Additional Cuts'
-        }
-
         # Pretty labels for legend for each process
         self.pretty_labels = {
             'ZJetsToNuNu' : r'QCD $Z\rightarrow \nu \nu$',
@@ -101,3 +90,34 @@ class Selection:
         first_variable_tag = re.sub('\(|\)', '', first_variable)
         second_variable_tag = re.sub('\(|\)', '', second_variable)
         self.selection_tag = f'{first_variable_tag}_{first_thresh_tag}_{second_variable_tag}_{second_thresh_tag}'
+
+        variable_to_fig_title = {
+            'dphijj'      : r'$\Delta \Phi_{jj}$',
+            'max(neEmEF)' : r'$max(neEmEF)$',
+            'dPhi_TkMET_PFMET' : r'$\Delta \Phi (TkMET, PFMET)$',
+        }
+
+        # List of figure titles for each region
+        if self.variables == ['dphijj', 'max(neEmEF)']:
+            self.fig_titles = {
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) < {}$'.format(first_thresh, second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) < {}$'.format(first_thresh, second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
+                'noCuts' : 'No Additional Cuts'
+            }
+            
+        elif self.variables == ['dphijj', 'dPhi_TkMET_PFMET']:
+            self.fig_titles = {
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(first_thresh, second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(first_thresh, second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
+                'noCuts' : 'No Additional Cuts'
+            }
+
+

@@ -131,9 +131,9 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
         hep.histplot(signal, bins, ax=ax, label='VBF Signal', binwnorm=True, histtype='step')
 
     if region in ['A', 'B', 'C', 'D']:
-        ax.set_title(sty.fig_titles[f'region {region}'])
+        ax.set_title(sel.fig_titles[f'region {region}'])
     else:
-        ax.set_title(sty.fig_titles[region])
+        ax.set_title(sel.fig_titles[region])
 
     # Aesthetics: Put edge colors
     handles, labels = ax.get_legend_handles_labels()
@@ -147,7 +147,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
         handle.set_linestyle('-')
         handle.set_edgecolor('k')
 
-    ax.legend()
+    ax.legend(ncol=2)
 
     # Plot the data/MC ratio
     total_mc = np.sum(stacked_histos, axis=0)
