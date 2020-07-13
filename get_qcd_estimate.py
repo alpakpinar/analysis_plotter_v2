@@ -26,8 +26,8 @@ pretty_labels = sty.pretty_labels
 # Set the selection variables and thresholds
 selection_vars = ['dphijj', 'max(neEmEF)']
 # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
-thresholds = [1.5, 0.7]
-# thresholds = [1.5, 0.8]
+# thresholds = [1.5, 0.7]
+thresholds = [1.5, 0.6]
 sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True)
 fig_titles    = sel.fig_titles
 
@@ -148,7 +148,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     # to use in arithmetic operations with the other histograms
     if eta_binning == 'fine':
         ratio_C_B = np.repeat(ratio_C_B,5)
-    # TODO: Should have fixes for more eta binnings here (e.g. coarse, non-uniform ones...)
+    elif eta_binning == 'coarse':
+        ratio_C_B = np.repeat(ratio_C_B,10)
 
     # Get the excess data events for region A
     excess_events_A, bins = stack_plot(inpath, outtag, 
