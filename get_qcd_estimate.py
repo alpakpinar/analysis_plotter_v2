@@ -26,9 +26,9 @@ pretty_labels = sty.pretty_labels
 # Set the selection variables and thresholds
 selection_vars = ['dphijj', 'max(neEmEF)']
 # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
-# thresholds = [1.5, 0.7]
-thresholds = [1.5, 0.6]
-sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True)
+thresholds = [1.5, 0.7]
+# thresholds = [1.5, 0.8]
+sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_jet_dphi_cut=True)
 fig_titles    = sel.fig_titles
 
 def parse_cli():
@@ -68,7 +68,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
 
     ax.set_ylabel('Excess number of events')
     ax.set_yscale('log')
-    ax.set_ylim(1e-1, 1e3)
+    ax.set_ylim(1e-1, 1e5)
     ax.legend(title='Regions')
 
     # Calculate and plot the ratio: region1/region2

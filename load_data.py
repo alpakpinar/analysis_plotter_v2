@@ -21,7 +21,7 @@ dataset_mapping = {
 
 # Several different eta binnings for TF calculation in ABCD method
 eta_binnings = {
-    'very_fine' : np.linspace(-5,5,51),
+    'very_fine' : np.linspace(-5,5,26),
     'fine' : list(range(-5,6)),   
     'coarse' : list(range(-5,6,2)),
 }
@@ -85,7 +85,10 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         # Event selection
         if selection_dicts:
             # Initialize the mask with all True values
-            mask = np.ones_like(events[variable].array(), dtype=bool)
+            if variable == 'absEta':
+                mask = np.ones_like(events['leadak4_eta'].array(), dtype=bool)
+            else:
+                mask = np.ones_like(events[variable].array(), dtype=bool)
             # Update the mask with each selection content
             for selection_dict in selection_dicts:
                 variable_to_cut = selection_dict['variable']
@@ -94,6 +97,10 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
                     leadak4_neEmEF  = events['leadak4_neEmEF'].array()
                     trailak4_neEmEF = events['trailak4_neEmEF'].array()
                     variable_to_cut_arr = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
+                elif variable_to_cut == 'leadak4_trailak4_eta':
+                    leadak4_eta  = np.abs(events['leadak4_eta'].array() )
+                    trailak4_eta = np.abs(events['trailak4_eta'].array() )
+                    variable_to_cut_arr = np.minimum(leadak4_eta, trailak4_eta)
                 else:
                     variable_to_cut_arr = events[variable_to_cut].array()
                 # Low and high limits for the cut
@@ -113,7 +120,10 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
             mask = np.ones_like(events[variable].array(), dtype=bool)
 
         # Extract the variable, store as a histogram and scale
-        var = events[variable].array()[mask]
+        if variable == 'absEta':
+            var = np.abs(events['leadak4_eta'].array() )[mask]
+        else:
+            var = events[variable].array()[mask]
         # Get the weights for MC
         weights = np.ones_like(var)
         if process != 'MET':
@@ -131,6 +141,8 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         # Get the eta binning to be used (could be different for ABCD method calculations)
         elif re.match('.*eta.*', variable):
             bins = eta_binnings[eta_binning]
+        elif variable == 'absEta':
+            bins = np.linspace(0,5,26)
         # Binning for jet energy fractions
         elif re.match('.*ak4.*EF', variable):
             bins = np.linspace(0,1,51)

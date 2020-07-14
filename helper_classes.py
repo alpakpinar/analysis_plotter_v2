@@ -15,6 +15,7 @@ class Style:
             'mindPhiJetMet' : r'$min\Delta \Phi (jet, MET)$',
             'maxdPhiJetMet' : r'$max\Delta \Phi (jet, MET)$',
             'leadak4_eta'   : r'Leading Jet $\eta$',
+            'absEta'        : r'|$\eta$|',
             'trailak4_eta'  : r'Trailing Jet $\eta$',
             'leadak4_neHEF'   : 'Leading Jet Neutral Hadron Fraction',
             'trailak4_neHEF'  : 'Trailing Jet Neutral Hadron Fraction',
@@ -33,7 +34,7 @@ class Style:
         }
 
 class Selection:
-    def __init__(self, variables, thresholds, apply_recoil_cut=False):
+    def __init__(self, variables, thresholds, apply_recoil_cut=False, apply_jet_eta_cut=False, apply_jet_dphi_cut=False):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
@@ -83,6 +84,16 @@ class Selection:
                 recoil_cut = {'variable' : 'recoil_pt', 'low' : 250, 'high' : None}
                 self.selections_by_region[region].append(recoil_cut)
 
+        if apply_jet_eta_cut:
+            for region in self.selections_by_region.keys():
+                jet_eta_cut = {'variable' : 'leadak4_trailak4_eta', 'low' : None, 'high' : 2.5}
+                self.selections_by_region[region].append(jet_eta_cut)
+
+        if apply_jet_dphi_cut:
+            for region in self.selections_by_region.keys():
+                jet_eta_cut = {'variable' : 'dPhi_TkMET_PFMET', 'low' : None, 'high' : 1.0}
+                self.selections_by_region[region].append(jet_eta_cut)
+
         # Selection tag for output saving
         # Cleanup the dots/parantheses
         first_thresh_tag = re.sub('\.', '_', str(first_thresh))
@@ -93,6 +104,7 @@ class Selection:
 
         variable_to_fig_title = {
             'dphijj'      : r'$\Delta \Phi_{jj}$',
+            'leadak4_neEmEF' : r'Lead AK4 neutral EM EF',
             'max(neEmEF)' : r'$max(neEmEF)$',
             'dPhi_TkMET_PFMET' : r'$\Delta \Phi (TkMET, PFMET)$',
         }
@@ -104,6 +116,17 @@ class Selection:
                 'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
                 'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
                 'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) < {}$'.format(first_thresh, second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
+                'noCuts' : 'No Additional Cuts'
+            }
+
+        elif self.variables == ['dphijj', 'leadak4_neEmEF']:
+            self.fig_titles = {
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) < {}$'.format(first_thresh, second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) > {}$'.format(first_thresh, second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) > {}$'.format(first_thresh, second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) < {}$'.format(first_thresh, second_thresh),
                 'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
