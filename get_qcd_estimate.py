@@ -149,7 +149,14 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     if eta_binning == 'fine':
         ratio_C_B = np.repeat(ratio_C_B,5)
     elif eta_binning == 'coarse':
-        ratio_C_B = np.repeat(ratio_C_B,10)
+        if 'eta' in variable:
+            ratio_C_B = np.repeat(ratio_C_B,10)
+    elif eta_binning == 'coarse_largeEta':
+        if not 'absEta' in variable:
+            raise RuntimeError('This binning is currently only defined for absEta variable!')
+        # Extend the last TF to the largest eta bins
+        num_bins_to_extend = 8
+        ratio_C_B = list(ratio_C_B[:-1]) + list(np.repeat( ratio_C_B[-1], num_bins_to_extend ))
 
     # Get the excess data events for region A
     excess_events_A, bins = stack_plot(inpath, outtag, 

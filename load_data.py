@@ -23,7 +23,14 @@ dataset_mapping = {
 eta_binnings = {
     'very_fine' : np.linspace(-5,5,26),
     'fine' : list(range(-5,6)),   
-    'coarse' : list(range(-5,6,2)),
+    'coarse' : list(range(-5,6,2))
+}
+
+# Several different abs(eta) binnings for TF calculation in ABCD method
+abs_eta_binnings = {
+    'very_fine' : np.linspace(0,5,26),
+    'fine' : np.linspace(0,5,11),   
+    'coarse_largeEta' : list(np.arange(0,3.6,0.2)) + [5] # One transfer factor for 3.4 < |eta| < 5.0
 }
 
 def get_data_from_csv(csv_file):
@@ -142,7 +149,7 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         elif re.match('.*eta.*', variable):
             bins = eta_binnings[eta_binning]
         elif variable == 'absEta':
-            bins = np.linspace(0,5,26)
+            bins = abs_eta_binnings[eta_binning]
         # Binning for jet energy fractions
         elif re.match('.*ak4.*EF', variable):
             bins = np.linspace(0,1,51)
