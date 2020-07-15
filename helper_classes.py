@@ -20,7 +20,10 @@ class Style:
             'leadak4_neHEF'   : 'Leading Jet Neutral Hadron Fraction',
             'trailak4_neHEF'  : 'Trailing Jet Neutral Hadron Fraction',
             'leadak4_neEmEF'  : 'Leading Jet Neutral EM Fraction',
-            'trailak4_neEmEF' : 'Trailing Jet Neutral EM Fraction'
+            'trailak4_neEmEF' : 'Trailing Jet Neutral EM Fraction',
+            'thirdJet_pt'  : r'Third Jet $p_T$',
+            'thirdJet_eta' : r'Third Jet $\eta$',
+            'thirdJet_phi' : r'Third Jet $\phi$'
         }
 
         # Pretty labels for legend for each process
