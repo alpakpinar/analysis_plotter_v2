@@ -38,7 +38,8 @@ def plot_2d_histogram(input_root_file, proc, tree_version):
     proc_to_title = {
         'VBF'   : r'VBF $H(inv)$',
         'Znunu' : r'$Z(\nu \nu)$',
-        'Wlnu'  : r'$W(\ell \nu)$'
+        'Wlnu'  : r'$W(\ell \nu)$',
+        'data'  : 'Data (2017F)'
     }
     ax.set_title(proc_to_title[proc])
 
@@ -59,7 +60,8 @@ def main():
     root_files_for_procs = {
         'VBF'   : pjoin(input_root_dir, 'tree_VBF_HToInvisible_M125_pow_pythia8_2017.root'),
         'Znunu' : pjoin(input_root_dir, 'tree_ZJetsToNuNu_HT-400To600-mg_new_pmx_2017.root'),
-        'Wlnu'  : pjoin(input_root_dir, 'tree_WJetsToLNu_HT-400To600-MLM_2017.root')
+        'Wlnu'  : pjoin(input_root_dir, 'tree_WJetsToLNu_HT-400To600-MLM_2017.root'),
+        'data'  : pjoin(input_root_dir, 'tree_MET_2017F.root')
     }
     if proc != 'all':
         processes = [proc]
