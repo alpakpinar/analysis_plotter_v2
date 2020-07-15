@@ -28,7 +28,7 @@ def plot_2d_histogram(input_root_file, proc, tree_version):
 
     # Create a 2D histogram
     fig, ax = plt.subplots()
-    h, xedges, yedges, im = ax.hist2d(dphijj_array, max_neEmEF_array, bins=[30,10])
+    h, xedges, yedges, im = ax.hist2d(dphijj_array, max_neEmEF_array, bins=[ binnings['dphijj'], binnings['max(neEmEF)'] ])
 
     ax.set_xlabel(r'$\Delta \Phi_{jj}$')
     ax.set_ylabel(r'max(neEmEF)')
@@ -55,19 +55,24 @@ def main():
     # The ROOT file to use as an input for the 2D histogram
     input_root_dir = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
     proc = sys.argv[1]
-    if proc == 'VBF':
-        input_root_file = pjoin(input_root_dir, 'tree_VBF_HToInvisible_M125_pow_pythia8_2017.root')
-    elif proc == 'Znunu':
-        input_root_file = pjoin(input_root_dir, 'tree_ZJetsToNuNu_HT-400To600-mg_new_pmx_2017.root')
-    elif proc == 'Wlnu':
-        input_root_file = pjoin(input_root_dir, 'tree_WJetsToLNu_HT-400To600-MLM_2017.root')
+
+    root_files_for_procs = {
+        'VBF'   : pjoin(input_root_dir, 'tree_VBF_HToInvisible_M125_pow_pythia8_2017.root'),
+        'Znunu' : pjoin(input_root_dir, 'tree_ZJetsToNuNu_HT-400To600-mg_new_pmx_2017.root'),
+        'Wlnu'  : pjoin(input_root_dir, 'tree_WJetsToLNu_HT-400To600-MLM_2017.root')
+    }
+    if proc != 'all':
+        processes = [proc]
     else:
-        raise ValueError(f'Could not find the corresponding ROOT file for process: {proc}')
+        # Plot for all processes 
+        processes = root_files_for_procs.keys()
 
     # Get the tree version
     tree_version = os.path.basename(input_root_dir)
 
-    plot_2d_histogram(input_root_file, proc, tree_version)
+    for proc in processes:
+        input_root_file = root_files_for_procs[proc]
+        plot_2d_histogram(input_root_file, proc, tree_version)
 
 if __name__ == '__main__':
     main()
