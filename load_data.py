@@ -156,6 +156,9 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         # Binning for jet energy fractions
         elif re.match('.*ak4.*EF', variable):
             bins = np.linspace(0,1,51)
+        # Number of primary vertices
+        elif re.match('PV_npvs.*', variable):
+            bins = np.arange(0,40)
         else:
             raise RuntimeError(f'No binning found for variable: {variable}')
         h, bins = np.histogram(var, bins=bins, weights=weights)

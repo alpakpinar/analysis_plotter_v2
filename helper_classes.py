@@ -23,7 +23,9 @@ class Style:
             'trailak4_neEmEF' : 'Trailing Jet Neutral EM Fraction',
             'thirdJet_pt'  : r'Third Jet $p_T$',
             'thirdJet_eta' : r'Third Jet $\eta$',
-            'thirdJet_phi' : r'Third Jet $\phi$'
+            'thirdJet_phi' : r'Third Jet $\phi$',
+            'PV_npvs'      : r'$N_{PV}$',
+            'PV_npvsGood'  : r'Good $N_{PV}$'
         }
 
         # Pretty labels for legend for each process
