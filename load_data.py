@@ -52,7 +52,8 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         'thirdJet_eta' : np.linspace(-5,5,21),
         'thirdJet_phi' : np.linspace(-3.5,3.5,36),
         'nJet' : np.arange(0,10),
-        'HT_jetsInHF' : np.linspace(10,510,26)
+        'HT_jetsInHF' : np.linspace(10,510,26),
+        'HTmiss_jetsInHF_pt' : np.linspace(10,510,26),
     }
     # Get XS + sumw scaling factors
     xs_sumw_scale = get_data_from_csv(csv_file)

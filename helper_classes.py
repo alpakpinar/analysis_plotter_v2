@@ -27,7 +27,8 @@ class Style:
             'PV_npvs'      : r'$N_{PV}$',
             'PV_npvsGood'  : r'Good $N_{PV}$',
             'nJet'  : r'$N_{jet}$',
-            'HT_jetsInHF' : r'$H_T$ (Jets in HF)'
+            'HT_jetsInHF' : r'$H_T$ (Jets in HF)',
+            'HTmiss_jetsInHF_pt' : r'$\vec{H_{T,miss}}$ (Jets in HF)',
         }
 
         # Pretty labels for legend for each process
@@ -145,6 +146,17 @@ class Selection:
                 'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
                 'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
                 'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(first_thresh, second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
+                'noCuts' : 'No Additional Cuts'
+            }
+
+        elif self.variables == ['dphijj', 'HT_jetsInHF']:
+            self.fig_titles = {
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} < {}$'.format(first_thresh, second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} > {}$'.format(first_thresh, second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} > {}$'.format(first_thresh, second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} < {}$'.format(first_thresh, second_thresh),
                 'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'

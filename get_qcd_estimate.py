@@ -160,7 +160,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
                                     region='A',
                                     output_dir_tag=output_dir_tag
                                     ) 
-                                    
+
     # If excess events are smaller than 0, just set them to 0 since we're not interested in those
     excess_events_A[excess_events_A < 0] = 0.
 
@@ -261,8 +261,8 @@ def main():
     selection_vars = args.selection_vars
     thresholds = args.thresholds
 
-    print(f'MSG% Variables used for ABCD method: {" ".join(selection_vars)}')
-    print(f'MSG% Thresholds used for ABCD method: {" ".join(thresholds)}')
+    print(f'MSG% Variables used for ABCD method: {", ".join(selection_vars)}')
+    print(f'MSG% Thresholds used for ABCD method: {", ".join(map(str, thresholds))}')
 
     # Load in the classes holding information about the plots:
     sty = Style()
