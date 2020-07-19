@@ -29,7 +29,7 @@ eta_binnings = {
 # Several different abs(eta) binnings for TF calculation in ABCD method
 abs_eta_binnings = {
     'very_fine' : np.linspace(0,5,26),
-    'fine' : np.linspace(0,5,11),   
+    'fine' : np.arange(0,6),   
     'coarse_largeEta' : list(np.arange(0,3.6,0.2)) + [5] # One transfer factor for 3.4 < |eta| < 5.0
 }
 
