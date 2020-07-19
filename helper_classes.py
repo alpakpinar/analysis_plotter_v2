@@ -42,7 +42,7 @@ class Style:
         }
 
 class Selection:
-    def __init__(self, variables, thresholds, apply_recoil_cut=False, apply_jet_eta_cut=False, apply_jet_dphi_cut=False):
+    def __init__(self, variables, thresholds, apply_recoil_cut=False, apply_jet_eta_cut=False, apply_met_dphi_cut=False):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
@@ -97,10 +97,10 @@ class Selection:
                 jet_eta_cut = {'variable' : 'leadak4_trailak4_eta', 'low' : None, 'high' : 2.5}
                 self.selections_by_region[region].append(jet_eta_cut)
 
-        if apply_jet_dphi_cut:
+        if apply_met_dphi_cut:
             for region in self.selections_by_region.keys():
-                jet_eta_cut = {'variable' : 'dPhi_TkMET_PFMET', 'low' : None, 'high' : 1.0}
-                self.selections_by_region[region].append(jet_eta_cut)
+                met_dphi_cut = {'variable' : 'dPhi_TkMET_PFMET', 'low' : None, 'high' : 1.0}
+                self.selections_by_region[region].append(met_dphi_cut)
 
         # Selection tag for output saving
         # Cleanup the dots/parantheses

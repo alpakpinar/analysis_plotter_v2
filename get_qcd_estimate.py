@@ -267,7 +267,7 @@ def main():
     # Load in the classes holding information about the plots:
     sty = Style()
     
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_jet_dphi_cut=True)
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_met_dphi_cut=True)
 
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']

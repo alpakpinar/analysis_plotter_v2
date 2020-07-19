@@ -29,7 +29,7 @@ def load_style_and_selection():
     selection_vars = ['dphijj', 'max(neEmEF)']
     # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
     thresholds = [1.5, 0.7]
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_jet_dphi_cut=True)
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_met_dphi_cut=True)
 
     return sty, sel
 
