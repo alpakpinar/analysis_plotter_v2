@@ -51,6 +51,8 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         'thirdJet_pt'  : list(range(30,370,20)),
         'thirdJet_eta' : np.linspace(-5,5,21),
         'thirdJet_phi' : np.linspace(-3.5,3.5,36),
+        'nJet' : np.arange(0,10),
+        'HT_jetsInHF' : np.linspace(10,510,26)
     }
     # Get XS + sumw scaling factors
     xs_sumw_scale = get_data_from_csv(csv_file)
@@ -159,9 +161,6 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
         # Number of primary vertices
         elif re.match('PV_npvs.*', variable):
             bins = np.arange(0,40)
-        # Number of jets (with pt>30 GeV)
-        elif variable == 'nJet':
-            bins = np.arange(0,10)
         else:
             raise RuntimeError(f'No binning found for variable: {variable}')
         h, bins = np.histogram(var, bins=bins, weights=weights)

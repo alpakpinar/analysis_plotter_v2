@@ -18,28 +18,17 @@ from helper_classes import Style, Selection
 
 pjoin = os.path.join
 
-# Load in the classes holding information about the plots
-sty = Style()
-xlabels       = sty.xlabels
-pretty_labels = sty.pretty_labels
-
-# Set the selection variables and thresholds
-selection_vars = ['dphijj', 'max(neEmEF)']
-# selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
-thresholds = [1.5, 0.7]
-# thresholds = [1.5, 0.8]
-sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_jet_dphi_cut=True)
-fig_titles    = sel.fig_titles
-
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
     parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
     parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, very_fine is used.', default='very_fine')
+    parser.add_argument('--selection_vars', help='The two variables used to define the ABCD regions.', nargs=2, default=['dphijj', 'max(neEmEF)'])
+    parser.add_argument('--thresholds', help='Thresholds on the two variables that are used to define ABCD regions.', nargs=2, type=float, default=[1.5, 0.7])
     args = parser.parse_args()
     return args
 
-def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, 
+def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, sty, sel,
             variable='mjj', save_to_root=False, eta_binning='very_fine', output_dir_tag=None
             ):    
     '''Get the ratio of excess data events (over MC) in two regions, region1 and region2.'''
@@ -81,7 +70,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     hep.histplot(ratio, bins, ax=rax, histtype='errorbar', **kwargs)
 
     rax.grid(True)
-    rax.set_xlabel(xlabels[variable])
+    rax.set_xlabel(sty.xlabels[variable])
     rax.set_ylabel(f'{region1} / {region2}')
     rax.set_ylim(0,5)
 
@@ -117,7 +106,7 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Return the ratio and the corresponding binning
     return ratio, bins
 
-def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj', 
+def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable='mjj', 
                 save_to_root=False, eta_binning='very_fine', output_dir_tag=None
                 ):
     '''
@@ -129,6 +118,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     outtag           : Output tag to name the output directory 
     process_list     : List of physics processes to be plotted 
     csv_file         : The CSV file containing XS + sumw information for each dataset
+    sel              : The object containing information on selection.
+    sty              : The object containing information on plotting style & labels.
     variable         : The variable of interest, by defualt it is mjj
     save_to_root     : If set to True, save the results into an output ROOT file
     eta_binning      : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
@@ -139,7 +130,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     ratio_C_B, bins = get_ratio_of_excess_data(inpath, outtag, region1='C', region2='B', 
                                     variable=variable, 
                                     process_list=process_list, 
-                                    csv_file=csv_file, 
+                                    csv_file=csv_file,
+                                    sty=sty, sel=sel, 
                                     save_to_root=False,
                                     eta_binning=eta_binning,
                                     output_dir_tag=output_dir_tag
@@ -177,7 +169,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     hep.histplot(excess_events_A, bins, ax=ax, histtype='step')
 
     ax.set_ylabel('Excess Number of Events')
-    ax.set_xlabel(xlabels[variable])
+    ax.set_xlabel(sty.xlabels[variable])
     ax.set_title('Region A')
 
     ax.set_yscale('log')
@@ -204,7 +196,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     # Plot the QCD estimation as a function of mjj
     fig, ax = plt.subplots()
     hep.histplot(qcd_estimation, bins, ax=ax, histtype='step')
-    ax.set_xlabel(xlabels[variable])
+    ax.set_xlabel(sty.xlabels[variable])
     ax.set_ylabel('Events')
     ax.set_yscale('log')
     ax.set_ylim(1e-2,1e5)
@@ -225,7 +217,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, variable='mjj',
     # Return the QCD estimations and the corresponding binning
     return qcd_estimation, bins
 
-def stack_plot_with_qcd_estimation(inpath, outtag, variable, process_list, csv_file, qcd_estimation, output_dir_tag=None):
+def stack_plot_with_qcd_estimation(inpath, outtag, variable, sel, sty, process_list, csv_file, qcd_estimation, output_dir_tag=None):
     '''
     Create a stack plot for the signal region with the QCD estimation included.
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
@@ -265,6 +257,18 @@ def main():
 
     outtag = os.path.basename(inpath)
 
+    # Read variables and thresholds for ABCD method from the command line
+    selection_vars = args.selection_vars
+    thresholds = args.thresholds
+
+    print(f'MSG% Variables used for ABCD method: {" ".join(selection_vars)}')
+    print(f'MSG% Thresholds used for ABCD method: {" ".join(thresholds)}')
+
+    # Load in the classes holding information about the plots:
+    sty = Style()
+    
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_jet_dphi_cut=True)
+
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
 
@@ -276,6 +280,7 @@ def main():
     qcd_estimation, bins = get_qcd_estimate(inpath, outtag, 
                                 process_list=process_list, 
                                 csv_file=csv_file,
+                                sel=sel, sty=sty,
                                 variable=variable,
                                 eta_binning=eta_binning,
                                 output_dir_tag=output_dir_tag
@@ -284,7 +289,8 @@ def main():
     # Create a stack plot with QCD estimation included
     stack_plot_with_qcd_estimation(inpath, outtag, 
                                 process_list=process_list, 
-                                csv_file=csv_file, 
+                                csv_file=csv_file,
+                                sel=sel, sty=sty, 
                                 variable=variable,
                                 qcd_estimation=qcd_estimation,
                                 output_dir_tag=output_dir_tag

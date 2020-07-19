@@ -26,7 +26,8 @@ class Style:
             'thirdJet_phi' : r'Third Jet $\phi$',
             'PV_npvs'      : r'$N_{PV}$',
             'PV_npvsGood'  : r'Good $N_{PV}$',
-            'nJet'  : r'$N_{jet}$'
+            'nJet'  : r'$N_{jet}$',
+            'HT_jetsInHF' : r'$H_T$ (Jets in HF)'
         }
 
         # Pretty labels for legend for each process
