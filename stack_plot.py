@@ -15,7 +15,7 @@ from pprint import pprint
 
 pjoin = os.path.join
 
-def load_style_and_selection():
+def load_style_and_selection(additional_cuts):
     '''
     Load classes that contain information about plotting style and selections.
     This function will only be called if this script is the main script being called.
@@ -27,7 +27,7 @@ def load_style_and_selection():
     selection_vars = ['dphijj', 'max(neEmEF)']
     # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
     thresholds = [1.5, 0.7]
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=['recoil', 'met_dphi', 'leading_jet_pt'])
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=additional_cuts)
 
     return sty, sel
 
@@ -38,6 +38,7 @@ def parse_cli():
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
     parser.add_argument('--include_qcd_mc', help='Include the QCD MC in the stack plot.', action='store_true')
+    parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
     args = parser.parse_args()
     return args
 
@@ -199,7 +200,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
 
 def main():
     args = parse_cli()
-    sty, sel = load_style_and_selection()
+    additional_cuts = args.additionalCuts
+    sty, sel = load_style_and_selection(additional_cuts)
 
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
     if args.version == '09Jul20':
