@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import re
+import numpy as np
 
 class Style:
     def __init__(self):
         # List of x-labels for each variable
         self.xlabels = {
             'mjj' : r'$M_{jj} \ (GeV)$',
+            'dphijj' : r'$\Delta \Phi_{jj}$',
             'dPhiLeadingJetMet'  : r'$\Delta \Phi (jet0, MET)$',
             'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$',
             'dPhiMoreCentralJetMet' : r'$\Delta \Phi (central jet, MET)$',
@@ -41,8 +43,56 @@ class Style:
             'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
         }
 
+class Cut:
+    '''Helper class to represent a single cut, and retrieve the mask.'''
+    def __init__(self, variable, low_thresh, high_thresh, special_apply=None, selection_string=None):
+        self.variable = variable
+        self.low_thresh = low_thresh
+        self.high_thresh = high_thresh
+        self.special_apply = special_apply # Apply if one of the jets are in endcap? etc.
+        self.selection_string = selection_string
+        
+    def get_mask(self, events):
+        '''Create a boolean mask for the cut, reads the events object from outside.'''
+        leadak4_abseta = np.abs(events['leadak4_eta'].array())
+        trailak4_abseta = np.abs(events['trailak4_eta'].array())
+        # Special case: Apply the cut only if one of the two leading jets is in endcap
+        if self.special_apply == 'oneJetInEndcap':
+            events_to_apply_cut = ((leadak4_abseta > 2.5) & (leadak4_abseta < 3.0)) | ((trailak4_abseta > 2.5) & (trailak4_abseta < 3.0))
+        # Apply the cut only if none of the leading two jets is in HF
+        elif self.special_apply == 'noJetInHF':
+            events_to_apply_cut = (leadak4_abseta <= 3.0) & (trailak4_abseta <= 3.0)
+        else:
+            events_to_apply_cut = np.ones_like(leadak4_abseta, dtype=bool)
+
+        # Handle specific variables that are not directly saved in the tree, e.g. max(neEmEF)
+        if self.variable == 'max(neEmEF)':
+            leadak4_neEmEF  = events['leadak4_neEmEF'].array()
+            trailak4_neEmEF = events['trailak4_neEmEF'].array()
+            variable_arr = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
+        elif self.variable == 'leadak4_trailak4_eta':
+            leadak4_eta  = np.abs(events['leadak4_eta'].array() )
+            trailak4_eta = np.abs(events['trailak4_eta'].array() )
+            variable_arr = np.minimum(leadak4_eta, trailak4_eta)
+        elif self.variable == 'absEta':
+            variable_arr = np.abs(events['leadak4_eta'].array())
+        else:
+            variable_arr = events[self.variable].array()
+
+        # Create the mask, depending on boundary conditions
+        if (self.low_thresh is not None) and (self.high_thresh is not None):
+            mask = (variable_arr > self.low_thresh) & (variable_arr < self.high_thresh)
+        elif self.low_thresh is None:
+            mask = variable_arr < self.high_thresh
+        elif self.high_thresh is None:
+            mask = variable_arr > self.low_thresh
+
+        # Get the final mask: Apply the cut where wanted, for other events just return True
+        final_mask = np.where(events_to_apply_cut, mask, True)
+        return final_mask
+
 class Selection:
-    def __init__(self, variables, thresholds, apply_recoil_cut=False, apply_jet_eta_cut=False, apply_met_dphi_cut=False):
+    def __init__(self, variables, thresholds, apply_cuts=['recoil', 'met_dphi']):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
@@ -54,62 +104,76 @@ class Selection:
         self.variables   = variables
         self.thresholds  = thresholds
 
-        first_variable, second_variable = self.variables
-        first_thresh, second_thresh = self.thresholds
+        self.first_variable, self.second_variable = self.variables
+        self.first_thresh, self.second_thresh = self.thresholds
 
+        self.apply_cuts = apply_cuts
+
+        self.get_selections_by_region()
+        self.get_selection_tag()
+        self.get_fig_titles()
+
+    def get_selections_by_region(self):
+        '''Get list of selections for each region.'''
         self.selections_by_region = {
             # Regions for ABCD method
-            'region A' : [
-                {'variable' : first_variable, 'low' : first_thresh, 'high' : None},
-                {'variable' : second_variable, 'low' : None, 'high' : second_thresh}
+            'region A' : [ 
+                Cut(self.first_variable, low_thresh=self.first_thresh, high_thresh=None),
+                Cut(self.second_variable, low_thresh=None, high_thresh=self.second_thresh)
             ],
             'region B' : [
-                {'variable' : first_variable, 'low' : first_thresh, 'high' : None},
-                {'variable' : second_variable, 'low' : second_thresh, 'high' : None}
+                Cut(self.first_variable, low_thresh=self.first_thresh, high_thresh=None),
+                Cut(self.second_variable, low_thresh=self.second_thresh, high_thresh=None)
             ],
             'region C' : [
-                {'variable' : first_variable, 'low' : None, 'high' : first_thresh},
-                {'variable' : second_variable, 'low' : second_thresh, 'high' : None}
+                Cut(self.first_variable, low_thresh=None, high_thresh=self.first_thresh),
+                Cut(self.second_variable, low_thresh=self.second_thresh, high_thresh=None)
             ],
             'region D' : [
-                {'variable' : first_variable, 'low' : None, 'high' : first_thresh},
-                {'variable' : second_variable, 'low' : None, 'high' : second_thresh}
+                Cut(self.first_variable, low_thresh=None, high_thresh=self.first_thresh),
+                Cut(self.second_variable, low_thresh=None, high_thresh=self.second_thresh)
             ],
             # Signal region selection: dphijj < 1.5
             'signal': [
-                {'variable' : first_variable, 'low' : None, 'high' : first_thresh}
+                Cut(self.first_variable, low_thresh=None, high_thresh=self.first_thresh)
                 # {'variable' : 'dphijj', 'low' : None, 'high' : 1.5}
             ],
             # Orthogonal to SR, dphijj > 1.5
             'dphijj_largerThan_1_5' : [
-                {'variable' : first_variable, 'low' : first_thresh, 'high' : None}
+                Cut(self.first_variable, low_thresh=self.first_thresh, high_thresh=None)
             ]
         }
 
-        # Apply additional recoil>250 GeV cut if requested
-        if apply_recoil_cut:
-            for region in self.selections_by_region.keys():
-                recoil_cut = {'variable' : 'recoil_pt', 'low' : 250, 'high' : None}
-                self.selections_by_region[region].append(recoil_cut)
+        # Additional cuts to be applied on all ABCD regions
+        additional_cuts = {
+            'recoil'   : Cut('recoil_pt', low_thresh=250, high_thresh=None),
+            'jet_eta'  : Cut('leadak4_trailak4_eta', low_thresh=None, high_thresh=2.5),
+            'met_dphi' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=1.0),
+            'leading_jet_pt' : Cut('leadak4_pt', low_thresh=100, high_thresh=None),
+            # Cuts to apply only if none of the two leading jets is in HF
+            'met_dphi_noHF'  : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='noJetInHF'),
+            'leading_jet_pt_noHF'  : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='noJetInHF'),
+            # Cuts to apply only if one of the two leading jets is in endcap 
+            'met_dphi_jetInEndcap' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap'),
+            'leading_jet_pt_jetInEndcap' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap')
+        }
 
-        if apply_jet_eta_cut:
-            for region in self.selections_by_region.keys():
-                jet_eta_cut = {'variable' : 'leadak4_trailak4_eta', 'low' : None, 'high' : 2.5}
-                self.selections_by_region[region].append(jet_eta_cut)
-
-        if apply_met_dphi_cut:
-            for region in self.selections_by_region.keys():
-                met_dphi_cut = {'variable' : 'dPhi_TkMET_PFMET', 'low' : None, 'high' : 1.0}
-                self.selections_by_region[region].append(met_dphi_cut)
-
+        # Apply additional cuts if requested
+        for cut_tag, cut in additional_cuts.items():
+            if cut_tag in self.apply_cuts:
+                for region in self.selections_by_region.keys():
+                    self.selections_by_region[region].append(cut)
+                
+    def get_selection_tag(self):
         # Selection tag for output saving
         # Cleanup the dots/parantheses
-        first_thresh_tag = re.sub('\.', '_', str(first_thresh))
-        second_thresh_tag = re.sub('\.', '_', str(second_thresh))
-        first_variable_tag = re.sub('\(|\)', '', first_variable)
-        second_variable_tag = re.sub('\(|\)', '', second_variable)
+        first_thresh_tag = re.sub('\.', '_', str(self.first_thresh))
+        second_thresh_tag = re.sub('\.', '_', str(self.second_thresh))
+        first_variable_tag = re.sub('\(|\)', '', self.first_variable)
+        second_variable_tag = re.sub('\(|\)', '', self.second_variable)
         self.selection_tag = f'{first_variable_tag}_{first_thresh_tag}_{second_variable_tag}_{second_thresh_tag}'
 
+    def get_fig_titles(self):
         variable_to_fig_title = {
             'dphijj'      : r'$\Delta \Phi_{jj}$',
             'leadak4_neEmEF' : r'Lead AK4 neutral EM EF',
@@ -120,55 +184,55 @@ class Selection:
         # List of figure titles for each region
         if self.variables == ['dphijj', 'max(neEmEF)']:
             self.fig_titles = {
-                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) < {}$'.format(first_thresh, second_thresh),
-                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
-                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) > {}$'.format(first_thresh, second_thresh),
-                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) < {}$'.format(first_thresh, second_thresh),
-                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) < {}$'.format(self.first_thresh, self.second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $max(neEmEF) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $max(neEmEF) < {}$'.format(self.first_thresh, self.second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(self.first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
             }
 
         elif self.variables == ['dphijj', 'leadak4_neEmEF']:
             self.fig_titles = {
-                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) < {}$'.format(first_thresh, second_thresh),
-                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) > {}$'.format(first_thresh, second_thresh),
-                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) > {}$'.format(first_thresh, second_thresh),
-                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) < {}$'.format(first_thresh, second_thresh),
-                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) < {}$'.format(self.first_thresh, self.second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $leadAK4(neEmEF) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $leadAK4(neEmEF) < {}$'.format(self.first_thresh, self.second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(self.first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
             }
             
         elif self.variables == ['dphijj', 'dPhi_TkMET_PFMET']:
             self.fig_titles = {
-                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(first_thresh, second_thresh),
-                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
-                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(first_thresh, second_thresh),
-                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(first_thresh, second_thresh),
-                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(self.first_thresh, self.second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) > {}$'.format(self.first_thresh, self.second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\Delta \Phi (TkMET, PFMET) < {}$'.format(self.first_thresh, self.second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(self.first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
             }
 
         elif self.variables == ['dphijj', 'HT_jetsInHF']:
             self.fig_titles = {
-                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} < {}$'.format(first_thresh, second_thresh),
-                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} > {}$'.format(first_thresh, second_thresh),
-                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} > {}$'.format(first_thresh, second_thresh),
-                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} < {}$'.format(first_thresh, second_thresh),
-                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} < {}$'.format(self.first_thresh, self.second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $H_{{T,HF}} > {}$'.format(self.first_thresh, self.second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} > {}$'.format(self.first_thresh, self.second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $H_{{T,HF}} < {}$'.format(self.first_thresh, self.second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(self.first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
             }
 
         elif self.variables == ['dphijj', 'HTmiss_jetsInHF_pt']:
             self.fig_titles = {
-                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $\vec{{H}}_{{T,miss}} < {}$'.format(first_thresh, second_thresh),
-                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\vec{{H}}_{{T,miss}} > {}$'.format(first_thresh, second_thresh),
-                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\vec{{H}}_{{T,miss}} > {}$'.format(first_thresh, second_thresh),
-                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\vec{{H}}_{{T,miss}} < {}$'.format(first_thresh, second_thresh),
-                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(first_thresh),
+                'region A' : r'$\Delta \Phi_{{jj}} > {}$ & $\vec{{H}}_{{T,miss}} < {}$'.format(self.first_thresh, self.second_thresh),
+                'region B' : r'$\Delta \Phi_{{jj}} > {}$ & $\vec{{H}}_{{T,miss}} > {}$'.format(self.first_thresh, self.second_thresh),
+                'region C' : r'$\Delta \Phi_{{jj}} < {}$ & $\vec{{H}}_{{T,miss}} > {}$'.format(self.first_thresh, self.second_thresh),
+                'region D' : r'$\Delta \Phi_{{jj}} < {}$ & $\vec{{H}}_{{T,miss}} < {}$'.format(self.first_thresh, self.second_thresh),
+                'signal'   : r'$\Delta \Phi_{{jj}} < {}$ (SR Selection)'.format(self.first_thresh),
                 'dphijj_largerThan_1_5' : r'$\Delta \Phi_{jj} > 1.5$',
                 'noCuts' : 'No Additional Cuts'
             }

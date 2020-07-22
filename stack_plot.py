@@ -29,7 +29,7 @@ def load_style_and_selection():
     selection_vars = ['dphijj', 'max(neEmEF)']
     # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
     thresholds = [1.5, 0.7]
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_met_dphi_cut=True)
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=['recoil', 'met_dphi', 'leading_jet_pt'])
 
     return sty, sel
 
@@ -43,7 +43,7 @@ def parse_cli():
     args = parser.parse_args()
     return args
 
-def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel, region, 
+def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
         include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None
         ):
@@ -56,7 +56,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
     outtag                 : Output tag to name the output directory 
     process_list           : List of physics processes to be plotted
     csv_file               : The CSV file containing XS + sumw information for each dataset
-    selection_dicts        : List of dictionaries, each containing information about a selection.
+    cuts                   : List of Cut objects, each containing information about a cut.
     sty                    : The Style object to be passed in for plotting.
     sel                    : The Selection object to be passed in for plotting.
     region                 : Region to be plotted (A,B,C or D for ABCD method).
@@ -89,7 +89,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
         print(f'MSG% Obtaining histogram for {process}')
         # Load the data from ROOT files: Get the histograms for each process + binning
         # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
-        h, bins = load_data(inpath, process, csv_file, variable, selection_dicts, eta_binning=eta_binning)
+        h, bins = load_data(inpath, process, csv_file, variable, cuts, eta_binning=eta_binning)
 
         if process != 'MET':
             histograms[process] = h
@@ -127,7 +127,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, selection_dicts, sty, sel
 
     # Include signal in the plot if requested
     if plot_signal:
-        signal, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable=variable, selection_dicts=selection_dicts, eta_binning=eta_binning)
+        signal, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable=variable, cuts=cuts, eta_binning=eta_binning)
         hep.histplot(signal, bins, ax=ax, label='VBF Signal', binwnorm=True, histtype='step')
 
     if region in ['A', 'B', 'C', 'D']:
@@ -223,12 +223,12 @@ def main():
     if args.region:
         region = args.region
         if region in ['A', 'B', 'C', 'D']:
-            selection_dicts = sel.selections_by_region[f'region {region}']
+            cuts = sel.selections_by_region[f'region {region}']
         else:
-            selection_dicts = sel.selections_by_region[region]
+            cuts = sel.selections_by_region[region]
     elif (not args.region and args.noCuts):
         region = 'noCuts'
-        selection_dicts = None
+        cuts = None
     else:
         raise RuntimeError('Either specify a region via --region option or specify --noCuts.')
 
@@ -238,7 +238,7 @@ def main():
             excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                                 variable=variable,
                                 sty=sty, sel=sel,
-                                selection_dicts=selection_dicts, 
+                                cuts=cuts, 
                                 region=region,
                                 include_qcd_mc=args.include_qcd_mc
                                 )
@@ -248,7 +248,7 @@ def main():
         excess_data, bins = stack_plot(inpath, outtag, process_list, csv_file, 
                             variable=variable,
                             sty=sty, sel=sel,
-                            selection_dicts=selection_dicts, 
+                            cuts=cuts, 
                             region=region,
                             include_qcd_mc=args.include_qcd_mc
                             )

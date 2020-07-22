@@ -41,13 +41,14 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_binning='very_fine'):
+def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine'):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
     '''
     binning = {
         'mjj' : list(range(200,800,300)) + list(range(800,2000,400)) + [2000, 2750, 3500],
+        'dphijj' : np.linspace(0,3,31),
         'thirdJet_pt'  : list(range(30,370,20)),
         'thirdJet_eta' : np.linspace(-5,5,21),
         'thirdJet_phi' : np.linspace(-3.5,3.5,36),
@@ -96,37 +97,15 @@ def load_data(inpath, process, csv_file, variable, selection_dicts=None, eta_bin
             continue
 
         # Event selection
-        if selection_dicts:
+        if cuts is not None:
             # Initialize the mask with all True values
             if variable == 'absEta':
                 mask = np.ones_like(events['leadak4_eta'].array(), dtype=bool)
             else:
                 mask = np.ones_like(events[variable].array(), dtype=bool)
             # Update the mask with each selection content
-            for selection_dict in selection_dicts:
-                variable_to_cut = selection_dict['variable']
-                # Consider the maximum of the neutral EM energy fraction in the leading dijet pair
-                if variable_to_cut == 'max(neEmEF)':
-                    leadak4_neEmEF  = events['leadak4_neEmEF'].array()
-                    trailak4_neEmEF = events['trailak4_neEmEF'].array()
-                    variable_to_cut_arr = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
-                elif variable_to_cut == 'leadak4_trailak4_eta':
-                    leadak4_eta  = np.abs(events['leadak4_eta'].array() )
-                    trailak4_eta = np.abs(events['trailak4_eta'].array() )
-                    variable_to_cut_arr = np.minimum(leadak4_eta, trailak4_eta)
-                else:
-                    variable_to_cut_arr = events[variable_to_cut].array()
-                # Low and high limits for the cut
-                low_limit, high_limit = selection_dict['low'], selection_dict['high']
-
-                if (low_limit is not None) and (high_limit is not None):
-                    mask_update = (variable_to_cut_arr > low_limit) & (variable_to_cut_arr < high_limit)
-                elif low_limit is None:
-                    mask_update = variable_to_cut_arr < high_limit
-                elif high_limit is None:
-                    mask_update = variable_to_cut_arr > low_limit
-                
-                # Update the mask
+            for cut in cuts:
+                mask_update = cut.get_mask(events)
                 mask = mask & mask_update
                 
         else:

@@ -35,12 +35,12 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     # Call the stack_plot function to get the excess events in each region
     excess_events = {}
     for region in [region1, region2]:
-        selection_dicts = sel.selections_by_region[f'region {region}'] if region != 'noCuts' else None
+        cuts = sel.selections_by_region[f'region {region}'] if region != 'noCuts' else None
         excess_events[region], bins = stack_plot(inpath, outtag, process_list, 
                                                  csv_file,
                                                  variable=variable,
                                                  sel=sel, sty=sty, 
-                                                 selection_dicts=selection_dicts,
+                                                 cuts=cuts,
                                                  region=region,
                                                  eta_binning=eta_binning,
                                                  output_dir_tag=output_dir_tag
@@ -156,7 +156,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
                                     process_list=process_list,
                                     sel=sel, sty=sty, 
                                     csv_file=csv_file, 
-                                    selection_dicts=sel.selections_by_region['region A'], 
+                                    cuts=sel.selections_by_region['region A'], 
                                     region='A',
                                     output_dir_tag=output_dir_tag
                                     ) 
@@ -224,11 +224,11 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, sel, sty, process_l
     '''
     # Call the stack_plot function with the QCD estimate included
     region = 'D'
-    selection_dicts = sel.selections_by_region[f'region {region}']
+    cuts = sel.selections_by_region[f'region {region}']
 
     stack_plot(inpath, outtag, process_list, csv_file,
                variable=variable, 
-               selection_dicts=selection_dicts, 
+               cuts=cuts, 
                sel=sel, sty=sty,
                region=region, 
                include_qcd_estimation=True, 
@@ -267,7 +267,7 @@ def main():
     # Load in the classes holding information about the plots:
     sty = Style()
     
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_recoil_cut=True, apply_jet_eta_cut=False, apply_met_dphi_cut=True)
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=['recoil', 'met_dphi', 'leading_jet_pt'])
 
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
