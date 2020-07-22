@@ -76,9 +76,9 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
 
     # Save the figure
     if output_dir_tag:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}/{output_dir_tag}'
     else:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     outfile = f'excess_events_regions_{region1}_{region2}_{variable}.pdf'
@@ -176,9 +176,9 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
     ax.set_ylim(1e-1, 1e4)
 
     if output_dir_tag:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}/{output_dir_tag}'
     else:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
@@ -204,9 +204,9 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
     
     # Save figure
     if output_dir_tag:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{output_dir_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}/{output_dir_tag}'
     else:
-        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}'
+        outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     

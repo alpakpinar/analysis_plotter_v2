@@ -110,7 +110,7 @@ class Selection:
         self.apply_cuts = apply_cuts
 
         self.get_selections_by_region()
-        self.get_selection_tag()
+        self.get_selection_tags()
         self.get_fig_titles()
 
     def get_selections_by_region(self):
@@ -145,7 +145,7 @@ class Selection:
         }
 
         # Additional cuts to be applied on all ABCD regions
-        additional_cuts = {
+        self.additional_cuts = {
             'recoil'   : Cut('recoil_pt', low_thresh=250, high_thresh=None),
             'jet_eta'  : Cut('leadak4_trailak4_eta', low_thresh=None, high_thresh=2.5),
             'met_dphi' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=1.0),
@@ -159,12 +159,16 @@ class Selection:
         }
 
         # Apply additional cuts if requested
-        for cut_tag, cut in additional_cuts.items():
+        for cut_tag, cut in self.additional_cuts.items():
             if cut_tag in self.apply_cuts:
                 for region in self.selections_by_region.keys():
                     self.selections_by_region[region].append(cut)
                 
-    def get_selection_tag(self):
+    def get_selection_tags(self):
+        '''
+        Create selection tags based on the selections applied for ABCD method and the additional cuts applied.
+        These tags will be used to name output directories to save plots made by applying the relevant selections.
+        '''
         # Selection tag for output saving
         # Cleanup the dots/parantheses
         first_thresh_tag = re.sub('\.', '_', str(self.first_thresh))
@@ -172,6 +176,18 @@ class Selection:
         first_variable_tag = re.sub('\(|\)', '', self.first_variable)
         second_variable_tag = re.sub('\(|\)', '', self.second_variable)
         self.selection_tag = f'{first_variable_tag}_{first_thresh_tag}_{second_variable_tag}_{second_thresh_tag}'
+
+        # Figure out which additional cuts are applied (to all ABCD regions)
+        additional_cut_tags = []
+        for cut_tag, cut in self.additional_cuts.items():
+            if cut_tag in self.apply_cuts:
+                cut_tag_to_append = f'{cut_tag}{"_" + cut.special_apply if cut.special_apply is not None else ""}' 
+                additional_cut_tags.append(cut_tag_to_append)
+
+        if len(additional_cut_tags) != 0:
+            self.additional_selection_tag = '_'.join(additional_cut_tags)
+        else:
+            self.additional_selection_tag = 'noAdditionalSelection'
 
     def get_fig_titles(self):
         variable_to_fig_title = {

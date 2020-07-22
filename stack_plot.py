@@ -172,10 +172,11 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     # Save figure
     if region in ['A', 'B', 'C', 'D'] or include_qcd_estimation:
         selection_tag = sel.selection_tag
+        additional_selection_tag = sel.additional_selection_tag  
         if output_dir_tag:
-            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{output_dir_tag}'
+            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{additional_selection_tag}/{output_dir_tag}'
         else:
-            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}'
+            outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{additional_selection_tag}'
     elif include_qcd_mc:
         outdir = f'./output/{outtag}/with_qcd_mc'
     else:
