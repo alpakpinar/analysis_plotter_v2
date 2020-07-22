@@ -150,12 +150,15 @@ class Selection:
             'jet_eta'  : Cut('leadak4_trailak4_eta', low_thresh=None, high_thresh=2.5),
             'met_dphi' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=1.0),
             'leading_jet_pt' : Cut('leadak4_pt', low_thresh=100, high_thresh=None),
+            'leading_jet_pt120' : Cut('leadak4_pt', low_thresh=120, high_thresh=None),
             # Cuts to apply only if none of the two leading jets is in HF
             'met_dphi_noHF'  : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='noJetInHF'),
             'leading_jet_pt_noHF'  : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='noJetInHF'),
+            'leading_jet_pt120_noHF'  : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='noJetInHF'),
             # Cuts to apply only if one of the two leading jets is in endcap 
             'met_dphi_jetInEndcap' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap'),
-            'leading_jet_pt_jetInEndcap' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap')
+            'leading_jet_pt_jetInEndcap' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap'),
+            'leading_jet_pt120_jetInEndcap' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap')
         }
 
         # Apply additional cuts if requested
@@ -181,8 +184,7 @@ class Selection:
         additional_cut_tags = []
         for cut_tag, cut in self.additional_cuts.items():
             if cut_tag in self.apply_cuts:
-                cut_tag_to_append = f'{cut_tag}{"_" + cut.special_apply if cut.special_apply is not None else ""}' 
-                additional_cut_tags.append(cut_tag_to_append)
+                additional_cut_tags.append(cut_tag)
 
         if len(additional_cut_tags) != 0:
             self.additional_selection_tag = '_'.join(additional_cut_tags)

@@ -25,6 +25,7 @@ def parse_cli():
     parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, very_fine is used.', default='very_fine')
     parser.add_argument('--selection_vars', help='The two variables used to define the ABCD regions.', nargs=2, default=['dphijj', 'max(neEmEF)'])
     parser.add_argument('--thresholds', help='Thresholds on the two variables that are used to define ABCD regions.', nargs=2, type=float, default=[1.5, 0.7])
+    parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
     args = parser.parse_args()
     return args
 
@@ -267,7 +268,7 @@ def main():
     # Load in the classes holding information about the plots:
     sty = Style()
     
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=['recoil', 'met_dphi', 'leading_jet_pt'])
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=args.additionalCuts)
 
     # List of processes to be plotted
     process_list = ['DYJetsToLL', 'Top', 'Diboson', 'EWKW', 'EWKZLL', 'EWKZNuNu', 'WJetsToLNu', 'ZJetsToNuNu', 'MET']
