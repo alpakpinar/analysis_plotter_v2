@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import re
-import csv
 import os
 import sys
-import uproot
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.ticker
