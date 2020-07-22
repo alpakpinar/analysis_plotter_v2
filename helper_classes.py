@@ -152,7 +152,8 @@ class Selection:
         # Additional cuts to be applied on all ABCD regions
         self.additional_cuts = {
             'recoil'   : Cut('recoil_pt', low_thresh=250, high_thresh=None),
-            'absEta'   : Cut('absEta', low_thresh=2.5, high_thresh=None),
+            'dphijj'   : Cut('dphijj', low_thresh=None, high_thresh=2.5),
+            'absEta'   : Cut('absEta', low_thresh=3.0, high_thresh=3.5),
             'jet_eta'  : Cut('leadak4_trailak4_eta', low_thresh=None, high_thresh=2.5),
             'met_dphi' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=1.0),
             'leading_jet_pt' : Cut('leadak4_pt', low_thresh=100, high_thresh=None),
