@@ -60,6 +60,11 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
     # Load the data with nominal selections
     h_nom, bins = load_data(inpath, process='VBF', csv_file=csv_file, variable='mjj', cuts=nom_selection_list)
 
+    # Add in the cuts for region D
+    nom_selection_list.extend([
+        Cut('max(neEmEF)', low_thresh=None, high_thresh=0.7)
+    ])
+
     # List with the additional selections
     extra_selection_list = []
 
