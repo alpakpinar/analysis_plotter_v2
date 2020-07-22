@@ -80,7 +80,11 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
         # Cuts to apply only if one of the two leading jets is in endcap 
         'met_dphi_jetInEndcap' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap'),
         'leading_jet_pt_jetInEndcap' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap'),
-        'leading_jet_pt120_jetInEndcap' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap')
+        'leading_jet_pt120_jetInEndcap' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap'),
+        # Cuts with endcap coverage slightly increased to |eta| 3.2
+        'met_dphi_jetInEndcap_v2' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap', change_endcap_def=True),
+        'leading_jet_pt_jetInEndcap_v2' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap', change_endcap_def=True),
+        'leading_jet_pt120_jetInEndcap_v2' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap', change_endcap_def=True)
     }
     
     for cutname, cut in additional_cuts.items():

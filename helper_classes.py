@@ -45,12 +45,12 @@ class Style:
 
 class Cut:
     '''Helper class to represent a single cut, and retrieve the mask.'''
-    def __init__(self, variable, low_thresh, high_thresh, special_apply=None, selection_string=None):
+    def __init__(self, variable, low_thresh, high_thresh, special_apply=None, change_endcap_def=False):
         self.variable = variable
         self.low_thresh = low_thresh
         self.high_thresh = high_thresh
         self.special_apply = special_apply # Apply if one of the jets are in endcap? etc.
-        self.selection_string = selection_string
+        self.change_endcap_def = change_endcap_def # Change maximum endcap coverage slightly, to |eta| = 3.2 from 3.0
         
     def get_mask(self, events):
         '''Create a boolean mask for the cut, reads the events object from outside.'''
@@ -58,7 +58,9 @@ class Cut:
         trailak4_abseta = np.abs(events['trailak4_eta'].array())
         # Special case: Apply the cut only if one of the two leading jets is in endcap
         if self.special_apply == 'oneJetInEndcap':
-            events_to_apply_cut = ((leadak4_abseta > 2.5) & (leadak4_abseta < 3.0)) | ((trailak4_abseta > 2.5) & (trailak4_abseta < 3.0))
+            # If requested, slightly change the endcap maximum coverage (say, to |eta| 3.2)
+            endcap_eta_largest = 3.2 if self.change_endcap_def else 3.0
+            events_to_apply_cut = ((leadak4_abseta > 2.5) & (leadak4_abseta < endcap_eta_largest)) | ((trailak4_abseta > 2.5) & (trailak4_abseta < endcap_eta_largest))
         # Apply the cut only if none of the leading two jets is in HF
         elif self.special_apply == 'noJetInHF':
             events_to_apply_cut = (leadak4_abseta <= 3.0) & (trailak4_abseta <= 3.0)
@@ -158,7 +160,11 @@ class Selection:
             # Cuts to apply only if one of the two leading jets is in endcap 
             'met_dphi_jetInEndcap' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap'),
             'leading_jet_pt_jetInEndcap' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap'),
-            'leading_jet_pt120_jetInEndcap' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap')
+            'leading_jet_pt120_jetInEndcap' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap'),
+            # Cuts with endcap coverage slightly increased to |eta| 3.2
+            'met_dphi_jetInEndcap_v2' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=0.75, special_apply='oneJetInEndcap', change_endcap_def=True),
+            'leading_jet_pt_jetInEndcap_v2' : Cut('leadak4_pt', low_thresh=100, high_thresh=None, special_apply='oneJetInEndcap', change_endcap_def=True),
+            'leading_jet_pt120_jetInEndcap_v2' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap', change_endcap_def=True)
         }
 
         # Apply additional cuts if requested
