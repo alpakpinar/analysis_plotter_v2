@@ -25,20 +25,21 @@ pjoin = os.path.join
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
-    parser.add_argument('--cuts', help='List of cuts to be applied to the signal.', nargs='*', default=['met_dphi'])
+    parser.add_argument('--cuts', help='List of cuts to be applied to the signal.', nargs='*', default=[])
     args = parser.parse_args()
     return args
 
-def calc_percent_loss(h_nom, h_all):
+def calc_percent_loss(h_nom, h_all, bins):
     '''Given the old and new histograms, calculate the percentage loss in yield.'''
-    total_yield_nom = np.sum(h_nom)
-    total_yield_all = np.sum(h_all)
+    bin_widths = np.diff(bins)
+    total_yield_nom = np.sum(h_nom*bin_widths)
+    total_yield_all = np.sum(h_all*bin_widths)
 
     total_percent_loss = ( np.abs(total_yield_nom - total_yield_all) / total_yield_nom ) * 100
 
     # Calculate the loss of yield for mjj > 2 TeV
-    yield_large_mjj_nom = np.sum(h_nom[-2:])
-    yield_large_mjj_all = np.sum(h_all[-2:])
+    yield_large_mjj_nom = np.sum(h_nom[-2:]*bin_widths[-2:])
+    yield_large_mjj_all = np.sum(h_all[-2:]*bin_widths[-2:])
 
     percent_loss_large_mjj = ( np.abs(yield_large_mjj_nom - yield_large_mjj_all) / yield_large_mjj_nom ) * 100
 
@@ -87,9 +88,10 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
         'leading_jet_pt120_jetInEndcap_v2' : Cut('leadak4_pt', low_thresh=120, high_thresh=None, special_apply='oneJetInEndcap', change_endcap_def=True)
     }
     
-    for cutname, cut in additional_cuts.items():
-        if cutname in extra_cut_names:
-            extra_selection_list.append(cut)
+    if len(extra_cut_names) != 0:
+        for cutname, cut in additional_cuts.items():
+            if cutname in extra_cut_names:
+                extra_selection_list.append(cut)
 
     all_selection_list = nom_selection_list + extra_selection_list
 
@@ -109,7 +111,7 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
     ax.legend()
 
     # Calculate the percentage loss in signal yield
-    yield_losses = calc_percent_loss(h_nom, h_all)
+    yield_losses = calc_percent_loss(h_nom, h_all, bins)
     total_percent_loss = yield_losses['total']
     percent_loss_large_mjj = yield_losses['large_mjj']
 
@@ -125,7 +127,10 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    filename = f'{"_".join(extra_cut_names)}.pdf'    
+    if len(extra_cut_names) != 0:
+        filename = f'{"_".join(extra_cut_names)}.pdf'    
+    else:
+        filename = 'noExtraCuts.pdf'
     outpath = pjoin(outdir, filename)
     fig.savefig(outpath)
 
