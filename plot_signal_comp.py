@@ -25,7 +25,7 @@ pjoin = os.path.join
 def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
-    parser.add_argument('--cuts', help='List of cuts to be applied to the signal.', nargs='*', default=['recoil', 'met_dphi'])
+    parser.add_argument('--cuts', help='List of cuts to be applied to the signal.', nargs='*', default=['met_dphi'])
     args = parser.parse_args()
     return args
 
@@ -102,6 +102,7 @@ def plot_signal_comp(inpath, outtag, csv_file, extra_cut_names, variable='mjj'):
     hep.histplot(h_all, bins, ax=ax, label='VBF (All Cuts)', histtype='step')
 
     ax.set_xlabel(r'$M_{jj} \ (GeV)$')
+    ax.set_xlim(200,3500)
     ax.set_ylabel('Events / Bin Width')
     ax.set_yscale('log')
     ax.set_ylim(1e1,1e3)
