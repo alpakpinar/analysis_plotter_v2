@@ -31,6 +31,7 @@ class Style:
             'nJet'  : r'$N_{jet}$',
             'HT_jetsInHF' : r'$H_T$ (Jets in HF)',
             'HTmiss_jetsInHF_pt' : r'$\vec{H}_{T,miss}$ (Jets in HF)',
+			'max(neEmEF)' : 'Maximum neutral EM fraction'
         }
 
         # Pretty labels for legend for each process
@@ -152,8 +153,10 @@ class Selection:
         # Additional cuts to be applied on all ABCD regions
         self.additional_cuts = {
             'recoil'   : Cut('recoil_pt', low_thresh=250, high_thresh=None),
+            'max_neEmEF_0_85'   : Cut('max(neEmEF)', low_thresh=None, high_thresh=0.85),
+            'dphijj_2_3'   : Cut('dphijj', low_thresh=None, high_thresh=2.3),
             'dphijj'   : Cut('dphijj', low_thresh=None, high_thresh=2.5),
-            'absEta'   : Cut('absEta', low_thresh=3.0, high_thresh=3.5),
+            'absEta'   : Cut('absEta', low_thresh=3.0, high_thresh=None),
             'jet_eta'  : Cut('leadak4_trailak4_eta', low_thresh=None, high_thresh=2.5),
             'met_dphi' : Cut('dPhi_TkMET_PFMET', low_thresh=None, high_thresh=1.0),
             'leading_jet_pt' : Cut('leadak4_pt', low_thresh=100, high_thresh=None),

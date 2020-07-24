@@ -55,6 +55,7 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         'nJet' : np.arange(0,10),
         'HT_jetsInHF' : np.linspace(10,510,26),
         'HTmiss_jetsInHF_pt' : np.linspace(10,510,26),
+        'max(neEmEF)' : np.arange(0,1.05,0.05)
     }
     # Get XS + sumw scaling factors
     xs_sumw_scale = get_data_from_csv(csv_file)
@@ -99,7 +100,7 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         # Event selection
         if cuts is not None:
             # Initialize the mask with all True values
-            if variable == 'absEta':
+            if variable in ['absEta', 'max(neEmEF)']:
                 mask = np.ones_like(events['leadak4_eta'].array(), dtype=bool)
             else:
                 mask = np.ones_like(events[variable].array(), dtype=bool)
@@ -114,6 +115,10 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         # Extract the variable, store as a histogram and scale
         if variable == 'absEta':
             var = np.abs(events['leadak4_eta'].array() )[mask]
+        elif variable == 'max(neEmEF)':
+            leadak4_neEmEF = np.abs(events['leadak4_neEmEF'].array())[mask]
+            trailak4_neEmEF = np.abs(events['trailak4_neEmEF'].array())[mask]
+            var = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
         else:
             var = events[variable].array()[mask]
         # Get the weights for MC
