@@ -41,7 +41,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation='central'):
+def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation=None):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -99,8 +99,11 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         filetag = filename.split('/')[-1].replace('.root', '').replace('tree_', '')
         # print(f'MSG% Working on: {filetag}')
         try:
-            if process != 'MET':
-                region_to_look = regions_to_look[jes_variation]
+            if jes_variation is not None:
+                if process != 'MET':
+                    region_to_look = regions_to_look[jes_variation]
+                else:
+                    region_to_look = 'sr_vbf'
             else:
                 region_to_look = 'sr_vbf'
             events = uproot.open(filename)[region_to_look]
