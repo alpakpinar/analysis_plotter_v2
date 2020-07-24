@@ -8,6 +8,7 @@ class Style:
         # List of x-labels for each variable
         self.xlabels = {
             'mjj' : r'$M_{jj} \ (GeV)$',
+            'detajj' : r'$\Delta \eta_{jj}$',
             'dphijj' : r'$\Delta \Phi_{jj}$',
             'dPhiLeadingJetMet'  : r'$\Delta \Phi (jet0, MET)$',
             'dPhiTrailingJetMet' : r'$\Delta \Phi (jet1, MET)$',

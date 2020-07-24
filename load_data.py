@@ -48,6 +48,7 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
     '''
     binning = {
         'mjj' : list(range(200,800,300)) + list(range(800,2000,400)) + [2000, 2750, 3500],
+        'detajj' : np.linspace(0,10,51), 
         'dphijj' : np.linspace(0,3,31),
         'thirdJet_pt'  : list(range(30,370,20)),
         'thirdJet_eta' : np.linspace(-5,5,21),
@@ -150,7 +151,7 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         elif re.match('.*dPhi.*', variable):
             bins = np.linspace(0,3.5,51)
         # Get the eta binning to be used (could be different for ABCD method calculations)
-        elif re.match('.*eta.*', variable):
+        elif re.match('.*ak4.*eta.*', variable):
             bins = eta_binnings[eta_binning]
         elif variable == 'absEta':
             bins = abs_eta_binnings[eta_binning]
