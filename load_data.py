@@ -41,7 +41,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine'):
+def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation='central'):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -87,12 +87,19 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
     # Combined histogram will be stored in this variable 
     histo = None
 
+    # Regions to look for different JES variations, default is the central one
+    regions_to_look = {
+        'central' : 'sr_vbf',
+        'jesUp' : 'sr_vbf_jesTotalUp',
+        'jesDown' : 'sr_vbf_jesTotalDown',
+    }
+
     # Loop over each file and read contents
     for filename in files_to_use:
         filetag = filename.split('/')[-1].replace('.root', '').replace('tree_', '')
         # print(f'MSG% Working on: {filetag}')
         try:
-            events = uproot.open(filename)['sr_vbf']
+            events = uproot.open(filename)[ regions_to_look[jes_variation] ]
         except KeyError:
             print(f'MSG% WARNING: Could not find events in: {filename}, skipping.')
             continue
