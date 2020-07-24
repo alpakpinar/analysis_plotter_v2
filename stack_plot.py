@@ -33,7 +33,7 @@ def load_style_and_selection(additional_cuts):
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 09Jul20.', default='09Jul20')
+    parser.add_argument('--version', help='The tree version to be used as inputs, default is 09Jul20.', default='09Jul20')
     parser.add_argument('--variables', help='The list of variables to be plotted, default is mjj.', nargs='*', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
