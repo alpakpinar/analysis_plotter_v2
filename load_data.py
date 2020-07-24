@@ -99,7 +99,11 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
         filetag = filename.split('/')[-1].replace('.root', '').replace('tree_', '')
         # print(f'MSG% Working on: {filetag}')
         try:
-            events = uproot.open(filename)[ regions_to_look[jes_variation] ]
+            if process != 'MET':
+                region_to_look = regions_to_look[jes_variation]
+            else:
+                region_to_look = 'sr_vbf'
+            events = uproot.open(filename)[region_to_look]
         except KeyError:
             print(f'MSG% WARNING: Could not find events in: {filename}, skipping.')
             continue

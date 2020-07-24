@@ -39,12 +39,13 @@ def parse_cli():
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
     parser.add_argument('--include_qcd_mc', help='Include the QCD MC in the stack plot.', action='store_true')
     parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
+    parser.add_argument('--jesVariation', help='JES variation to look at, can be central, up or down.')
     args = parser.parse_args()
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
-        include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None
+        include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None, jes_variation='central'
         ):
     '''
     Create a stack plot for the processes specified.
@@ -67,6 +68,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     include_qcd_mc         : If set to True, QCD MC will be included in the stack plot.
     eta_binning            : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
     output_dir_tag         : The tag to be used for the naming of the output directory, depending on the eta binning being used in TF calculation.
+    jes_variation          : JES variation to look at. By default it is central (no variation).
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -88,7 +90,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
         print(f'MSG% Obtaining histogram for {process}')
         # Load the data from ROOT files: Get the histograms for each process + binning
         # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
-        h, bins = load_data(inpath, process, csv_file, variable, cuts, eta_binning=eta_binning)
+        h, bins = load_data(inpath, process, csv_file, variable, cuts, eta_binning=eta_binning, jes_variation=jes_variation)
 
         if process != 'MET':
             histograms[process] = h
@@ -176,6 +178,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
             outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{additional_selection_tag}/{output_dir_tag}'
         else:
             outdir = f'./output/{outtag}/qcd_estimation/{selection_tag}/{additional_selection_tag}'
+    elif region =='signal' and jes_variation != 'central':
+        outdir = f'./output/{outtag}/{jes_variation}'
     elif include_qcd_mc:
         outdir = f'./output/{outtag}/with_qcd_mc'
     else:
@@ -204,12 +208,16 @@ def main():
     sty, sel = load_style_and_selection(additional_cuts)
 
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
-    if args.version == '09Jul20':
-        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
-    elif args.version == '05Jul20':
-        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
-    elif args.version == '30Jun20':
-        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
+    if args.jesVariation is not None:
+        # Use the trees with JES variations recorded
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/24Jul20_JES'
+    else:
+        if args.version == '09Jul20':
+            inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
+        elif args.version == '05Jul20':
+            inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'
+        elif args.version == '30Jun20':
+            inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-06-30_nodphijj'
     
     print(f'MSG% Using trees from version: {args.version}')
     # Path to CSV file containing XS + sumw information for every dataset
@@ -241,7 +249,8 @@ def main():
                                 sty=sty, sel=sel,
                                 cuts=cuts, 
                                 region=region,
-                                include_qcd_mc=args.include_qcd_mc
+                                include_qcd_mc=args.include_qcd_mc,
+                                jes_variation=args.jesVariation
                                 )
     # The case where only a single variable is specified
     else:
@@ -251,7 +260,8 @@ def main():
                             sty=sty, sel=sel,
                             cuts=cuts, 
                             region=region,
-                            include_qcd_mc=args.include_qcd_mc
+                            include_qcd_mc=args.include_qcd_mc,
+                            jes_variation=args.jesVariation
                             )
 
 if __name__ == '__main__':
