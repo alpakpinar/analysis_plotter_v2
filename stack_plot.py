@@ -208,9 +208,9 @@ def main():
     sty, sel = load_style_and_selection(additional_cuts)
 
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
-    if args.jesVariation is not None or args.version == '24Jul20':
+    if args.jesVariation is not None or args.version == '25Jul20':
         # Use the trees with JES variations recorded
-        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/24Jul20_JES'
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/25Jul20_JES'
     else:
         if args.version == '09Jul20':
             inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
