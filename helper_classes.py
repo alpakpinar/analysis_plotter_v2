@@ -158,6 +158,10 @@ class Selection:
                 Cut('more_central_leadingJet', low_thresh=3.0, high_thresh=5.0), 
                 Cut('more_forward_leadingJet', low_thresh=3.0, high_thresh=5.0)
                 ],
+            'NoneInHF' : [
+                Cut('more_central_leadingJet', low_thresh=None, high_thresh=3.0), 
+                Cut('more_forward_leadingJet', low_thresh=None, high_thresh=3.0)
+                ],
         }
         return categories_to_jet_eta_cut[self.categorization]
 
@@ -195,6 +199,7 @@ class Selection:
         # Additional cuts to be applied on all ABCD regions
         self.additional_cuts = {
             'recoil'   : Cut('recoil_pt', low_thresh=250, high_thresh=None),
+            'max_neEmEF'   : Cut('max(neEmEF)', low_thresh=None, high_thresh=0.5),
             'max_neEmEF_0_85'   : Cut('max(neEmEF)', low_thresh=None, high_thresh=0.85),
             'dphijj_2_3'   : Cut('dphijj', low_thresh=None, high_thresh=2.3),
             'dphijj'   : Cut('dphijj', low_thresh=None, high_thresh=2.5),

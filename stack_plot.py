@@ -191,7 +191,11 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
         outdir = f'./output/{outtag}'
     # Add the categorized plot in a separate sub-directory
     if categorization is not None:
-        outdir += f'/categorized/{categorization}'  
+        additional_selection_tag = sel.additional_selection_tag
+        if additional_selection_tag != 'recoil':
+            outdir += f'/categorized/{categorization}/{additional_selection_tag}'  
+        else:
+            outdir += f'/categorized/{categorization}'  
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
