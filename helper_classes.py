@@ -3,6 +3,30 @@
 import re
 import numpy as np
 
+def calculate_vecB(events):
+    '''Helper function to calculate vecB quantity, used for cleaning cuts.'''
+    mht_pt, mht_phi = events['HTmiss_jetsInclusive_pt'].array(), events['HTmiss_jetsInclusive_phi'].array()
+    met_pt, met_phi = events['met_pt'].array(), events['met_phi'].array()
+
+    mht_px = mht_pt * np.cos(mht_phi)
+    mht_py = mht_pt * np.sin(mht_phi)
+    met_px = met_pt * np.cos(met_phi)
+    met_py = met_pt * np.sin(met_phi)
+    
+    mht_plus_met  = np.hypot( mht_px+met_px, mht_py+met_py ) 
+    mht_minus_met = np.hypot( mht_px-met_px, mht_py-met_py ) 
+
+    vecB = mht_minus_met / mht_plus_met
+    return vecB
+
+def calculate_vecDPhi(events):
+    '''Helper function to calculate vecDPhi quantity, used for cleaning cuts.'''
+    vecB = calculate_vecB(events)
+    dPhi_TkMET_PFMET = events['dPhi_TkMET_PFMET'].array()
+
+    vecDPhi = np.hypot( 3.3 * vecB, dPhi_TkMET_PFMET )
+    return vecDPhi
+
 class Style:
     def __init__(self):
         # List of x-labels for each variable
@@ -44,6 +68,38 @@ class Style:
             'WJetsToLNu'  : r'QCD $W\rightarrow \ell \nu$',
             'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
         }
+
+class CleaningCut:
+    '''Specific cleaning cut class'''
+    def __init__(self):
+        return
+
+    def get_mask(self, events):
+        leadak4_abseta = np.abs(events['leadak4_eta'].array())
+        trailak4_abseta = np.abs(events['trailak4_eta'].array())
+
+        cuts_to_apply = {
+            'Trk-Trk' : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
+            'Trk-EE'  : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
+            'Trk-HF'  : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
+            'EE-EE'   : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
+            'EE-HF'   : Cut('VecB', low_thresh=None, high_thresh=0.2),
+            'HF-HF'   : Cut('VecB', low_thresh=None, high_thresh=0.2),
+        }
+
+        # Get more central and more forward jets
+        more_central_jet_abseta = np.minimum(leadak4_abseta, trailak4_abseta)
+        more_forward_jet_abseta = np.maximum(leadak4_abseta, trailak4_abseta)
+
+        # Some calculation here...
+        total_mask = ((more_central_jet_abseta < 2.5) & (more_forward_jet_abseta < 2.5) ) * cuts_to_apply['Trk-Trk'].get_mask(events) + \
+                     ((more_central_jet_abseta < 2.5) & (more_central_jet_abseta > 2.5) & (more_forward_jet_abseta < 3.0)) * cuts_to_apply['Trk-EE'].get_mask(events) + \
+                     ((more_central_jet_abseta < 2.5) & (more_central_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)) * cuts_to_apply['Trk-HF'].get_mask(events) + \
+                     ((more_central_jet_abseta > 2.5) & (more_central_jet_abseta < 3.0) & (more_forward_jet_abseta > 2.5) & (more_forward_jet_abseta < 3.0)) * cuts_to_apply['EE-EE'].get_mask(events) + \
+                     ((more_central_jet_abseta > 2.5) & (more_central_jet_abseta < 3.0) & (more_forward_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)) * cuts_to_apply['EE-HF'].get_mask(events) + \
+                     ((more_central_jet_abseta > 3.0) & (more_central_jet_abseta < 5.0) & (more_forward_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)) * cuts_to_apply['HF-HF'].get_mask(events) 
+
+        return total_mask
 
 class Cut:
     '''Helper class to represent a single cut, and retrieve the mask.'''
@@ -89,6 +145,11 @@ class Cut:
             variable_arr = np.abs(events['leadak4_eta'].array())
         elif self.variable == 'trailak4_absEta':
             variable_arr = np.abs(events['trailak4_eta'].array())
+        # Cuts for cleaning variables, VecB and VecDPhi
+        elif self.variable == 'VecB':
+            variable_arr = calculate_vecB(events)
+        elif self.variable == 'VecDPhi':
+            variable_arr = calculate_vecDPhi(events)
         else:
             variable_arr = events[self.variable].array()
 

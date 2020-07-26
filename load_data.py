@@ -7,6 +7,7 @@ import sys
 from pprint import pprint
 import uproot
 import numpy as np
+from helper_classes import CleaningCut
 
 pjoin = os.path.join
 
@@ -41,7 +42,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation=None):
+def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation=None, apply_cleaning_cuts=False):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -123,6 +124,11 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
             for cut in cuts:
                 mask_update = cut.get_mask(events)
                 mask = mask & mask_update
+            # Apply the cleaning cuts as well (VecB, VecDPhi), if requested (by default it is not)
+            if apply_cleaning_cuts:
+                cc = CleaningCut()
+                cleaning_mask = cc.get_mask(events)
+                mask = mask & cleaning_mask
                 
         else:
             mask = np.ones_like(events[variable].array(), dtype=bool)

@@ -47,7 +47,7 @@ def parse_cli():
 def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
         include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None, jes_variation='central',
-        categorization=None
+        categorization=None, apply_cleaning_cuts=False
         ):
     '''
     Create a stack plot for the processes specified.
@@ -72,6 +72,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     output_dir_tag         : The tag to be used for the naming of the output directory, depending on the eta binning being used in TF calculation.
     jes_variation          : JES variation to look at. By default it is central (no variation).
     categorization         : The categorization according to the two leading jets (by default, None).
+    apply_cleaning_cuts   : Apply cleaning cuts (VecB, VecDPhi) on top of all ABCD regions, by default, this will not be done.
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -95,7 +96,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
         print(f'MSG% Obtaining histogram for {process}')
         # Load the data from ROOT files: Get the histograms for each process + binning
         # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
-        h, bins = load_data(inpath, process, csv_file, variable, cuts, eta_binning=eta_binning, jes_variation=jes_variation)
+        h, bins = load_data(inpath, process, csv_file, variable, cuts, 
+                eta_binning=eta_binning, jes_variation=jes_variation, apply_cleaning_cuts=apply_cleaning_cuts)
 
         if process != 'MET':
             histograms[process] = h
@@ -196,6 +198,10 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
             outdir += f'/categorized/{categorization}/{additional_selection_tag}'  
         else:
             outdir += f'/categorized/{categorization}'  
+    
+    if apply_cleaning_cuts:
+        outdir += '/with_cleaning_cuts'
+        
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
