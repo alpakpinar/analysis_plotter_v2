@@ -32,7 +32,7 @@ class Style:
             'nJet'  : r'$N_{jet}$',
             'HT_jetsInHF' : r'$H_T$ (Jets in HF)',
             'HTmiss_jetsInHF_pt' : r'$\vec{H}_{T,miss}$ (Jets in HF)',
-			'max(neEmEF)' : 'Maximum neutral EM fraction'
+            'max(neEmEF)' : 'Maximum neutral EM fraction'
         }
 
         # Pretty labels for legend for each process
@@ -77,12 +77,18 @@ class Cut:
             leadak4_neEmEF  = events['leadak4_neEmEF'].array()
             trailak4_neEmEF = events['trailak4_neEmEF'].array()
             variable_arr = np.maximum(leadak4_neEmEF, trailak4_neEmEF)
-        elif self.variable == 'leadak4_trailak4_eta':
+        elif self.variable in ['leadak4_trailak4_eta', 'more_central_leadingJet']:
             leadak4_eta  = np.abs(events['leadak4_eta'].array() )
             trailak4_eta = np.abs(events['trailak4_eta'].array() )
             variable_arr = np.minimum(leadak4_eta, trailak4_eta)
-        elif self.variable == 'absEta':
+        elif self.variable == 'more_forward_leadingJet':
+            leadak4_eta  = np.abs(events['leadak4_eta'].array() )
+            trailak4_eta = np.abs(events['trailak4_eta'].array() )
+            variable_arr = np.maximum(leadak4_eta, trailak4_eta)
+        elif self.variable in ['absEta', 'leadak4_absEta']:
             variable_arr = np.abs(events['leadak4_eta'].array())
+        elif self.variable == 'trailak4_absEta':
+            variable_arr = np.abs(events['trailak4_eta'].array())
         else:
             variable_arr = events[self.variable].array()
 
@@ -99,7 +105,7 @@ class Cut:
         return final_mask
 
 class Selection:
-    def __init__(self, variables, thresholds, apply_cuts=['recoil', 'met_dphi']):
+    def __init__(self, variables, thresholds, apply_cuts=['recoil', 'met_dphi'], categorization=None):
         '''
         Create and store a dictionary mapping the regions to the cuts that are being used for the region.
         While calling this class, one should provide two variables, two low limits and high limits for each variable
@@ -116,9 +122,44 @@ class Selection:
 
         self.apply_cuts = apply_cuts
 
+        # Categorization for two leading jets, i.e. EE-HF. By default, no such categorization is applied.
+        # If a specific categorization is chosen, additional two cuts on two leading jets will be applied.
+        self.categorization = categorization
+
         self.get_selections_by_region()
         self.get_selection_tags()
         self.get_fig_titles()
+
+    def get_cuts_for_category(self):
+        '''If a categorization is specified, get the relevant cuts.'''
+        # Jet eta cuts for each category
+        categories_to_jet_eta_cut = {
+            'Trk-Trk' : [
+                Cut('more_central_leadingJet', low_thresh=None, high_thresh=2.5), 
+                Cut('more_forward_leadingJet', low_thresh=None, high_thresh=2.5)
+                ],
+            'Trk-EE' : [
+                Cut('more_central_leadingJet', low_thresh=None, high_thresh=2.5), 
+                Cut('more_forward_leadingJet', low_thresh=2.5, high_thresh=3.0)
+                ],
+            'EE-EE' : [
+                Cut('more_central_leadingJet', low_thresh=2.5, high_thresh=3.0), 
+                Cut('more_forward_leadingJet', low_thresh=2.5, high_thresh=3.0)
+                ],
+            'Trk-HF' : [
+                Cut('more_central_leadingJet', low_thresh=None, high_thresh=2.5), 
+                Cut('more_forward_leadingJet', low_thresh=3.0, high_thresh=5.0)
+                ],
+            'EE-HF' : [
+                Cut('more_central_leadingJet', low_thresh=2.5, high_thresh=3.0), 
+                Cut('more_forward_leadingJet', low_thresh=3.0, high_thresh=5.0)
+                ],
+            'HF-HF' : [
+                Cut('more_central_leadingJet', low_thresh=3.0, high_thresh=5.0), 
+                Cut('more_forward_leadingJet', low_thresh=3.0, high_thresh=5.0)
+                ],
+        }
+        return categories_to_jet_eta_cut[self.categorization]
 
     def get_selections_by_region(self):
         '''Get list of selections for each region.'''
@@ -185,7 +226,12 @@ class Selection:
             if cut_tag in self.apply_cuts:
                 for region in self.selections_by_region.keys():
                     self.selections_by_region[region].append(cut)
-                
+
+        if self.categorization is not None:
+            categorization_cuts = self.get_cuts_for_category()
+            for region in self.selections_by_region.keys():
+                self.selections_by_region[region].extend(categorization_cuts)
+
     def get_selection_tags(self):
         '''
         Create selection tags based on the selections applied for ABCD method and the additional cuts applied.

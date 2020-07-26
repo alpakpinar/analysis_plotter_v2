@@ -15,7 +15,7 @@ from pprint import pprint
 
 pjoin = os.path.join
 
-def load_style_and_selection(additional_cuts):
+def load_style_and_selection(additional_cuts, categorization=None):
     '''
     Load classes that contain information about plotting style and selections.
     This function will only be called if this script is the main script being called.
@@ -27,7 +27,7 @@ def load_style_and_selection(additional_cuts):
     selection_vars = ['dphijj', 'max(neEmEF)']
     # selection_vars = ['dphijj', 'dPhi_TkMET_PFMET']
     thresholds = [1.5, 0.7]
-    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=additional_cuts)
+    sel = Selection(variables=selection_vars, thresholds=thresholds, apply_cuts=additional_cuts, categorization=categorization)
 
     return sty, sel
 
@@ -40,12 +40,14 @@ def parse_cli():
     parser.add_argument('--include_qcd_mc', help='Include the QCD MC in the stack plot.', action='store_true')
     parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
     parser.add_argument('--jesVariation', help='JES variation to look at, can be central, up or down.')
+    parser.add_argument('--categorization', help='The categorization to plot (e.g. Trk-EE), by default no categorization cut will be applied.')
     args = parser.parse_args()
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
-        include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None, jes_variation='central'
+        include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None, jes_variation='central',
+        categorization=None
         ):
     '''
     Create a stack plot for the processes specified.
@@ -69,12 +71,15 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     eta_binning            : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
     output_dir_tag         : The tag to be used for the naming of the output directory, depending on the eta binning being used in TF calculation.
     jes_variation          : JES variation to look at. By default it is central (no variation).
+    categorization         : The categorization according to the two leading jets (by default, None).
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
         raise RuntimeError('Please specify the QCD estimation for plotting.')
     
     print(f'MSG% Starting job -- Region: {region}, Variable: {variable}')
+    if categorization is not None:
+        print(f'MSG% Jet categorization: {categorization}')
     # Obtain the histograms for each process specified
     histograms = {}
     data = {}
@@ -184,6 +189,9 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
         outdir = f'./output/{outtag}/with_qcd_mc'
     else:
         outdir = f'./output/{outtag}'
+    # Add the categorized plot in a separate sub-directory
+    if categorization is not None:
+        outdir += f'/categorized/{categorization}'  
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -205,7 +213,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
 def main():
     args = parse_cli()
     additional_cuts = args.additionalCuts
-    sty, sel = load_style_and_selection(additional_cuts)
+    sty, sel = load_style_and_selection(additional_cuts, categorization=args.categorization)
 
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 30Jun20 instead.
     if args.jesVariation is not None or args.version == '25Jul20':
@@ -250,7 +258,8 @@ def main():
                                 cuts=cuts, 
                                 region=region,
                                 include_qcd_mc=args.include_qcd_mc,
-                                jes_variation=args.jesVariation
+                                jes_variation=args.jesVariation,
+                                categorization=args.categorization
                                 )
     # The case where only a single variable is specified
     else:
@@ -261,7 +270,8 @@ def main():
                             cuts=cuts, 
                             region=region,
                             include_qcd_mc=args.include_qcd_mc,
-                            jes_variation=args.jesVariation
+                            jes_variation=args.jesVariation,
+                            categorization=args.categorization
                             )
 
 if __name__ == '__main__':
