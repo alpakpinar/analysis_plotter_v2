@@ -41,6 +41,7 @@ def parse_cli():
     parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
     parser.add_argument('--jesVariation', help='JES variation to look at, can be central, up or down.')
     parser.add_argument('--categorization', help='The categorization to plot (e.g. Trk-EE), by default no categorization cut will be applied.')
+    parser.add_argument('--applyCleaningCuts', help='Apply cleaning cuts while plotting, based on VecB and VecDPhi.', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -72,7 +73,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     output_dir_tag         : The tag to be used for the naming of the output directory, depending on the eta binning being used in TF calculation.
     jes_variation          : JES variation to look at. By default it is central (no variation).
     categorization         : The categorization according to the two leading jets (by default, None).
-    apply_cleaning_cuts   : Apply cleaning cuts (VecB, VecDPhi) on top of all ABCD regions, by default, this will not be done.
+    apply_cleaning_cuts    : Apply cleaning cuts (VecB, VecDPhi) on top of all ABCD regions, by default, this will not be done.
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -269,7 +270,8 @@ def main():
                                 region=region,
                                 include_qcd_mc=args.include_qcd_mc,
                                 jes_variation=args.jesVariation,
-                                categorization=args.categorization
+                                categorization=args.categorization,
+                                apply_cleaning_cuts=args.applyCleaningCuts
                                 )
     # The case where only a single variable is specified
     else:
@@ -281,7 +283,8 @@ def main():
                             region=region,
                             include_qcd_mc=args.include_qcd_mc,
                             jes_variation=args.jesVariation,
-                            categorization=args.categorization
+                            categorization=args.categorization,
+                            apply_cleaning_cuts=args.applyCleaningCuts
                             )
 
 if __name__ == '__main__':
