@@ -126,8 +126,7 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
             # Apply the cleaning cuts as well (VecB, VecDPhi), if requested (by default it is not)
             # In 29Jul20 trees, these are readily saved as a boolean
             if apply_cleaning_cuts:
-                cleaning_mask = events['pass_cleaning_cut'].array()
-                print(cleaning_mask)
+                cleaning_mask = events['pass_cleaning_cut'].array().astype(bool)
                 mask = mask & cleaning_mask
                 
         else:

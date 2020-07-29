@@ -69,64 +69,6 @@ class Style:
             'EWKW'        : r'EWK $W\rightarrow \ell \nu$'
         }
 
-class CleaningCut:
-    '''Specific cleaning cut class'''
-    def __init__(self):
-        return
-
-    def get_mask(self, events):
-        leadak4_abseta = np.abs(events['leadak4_eta'].array())
-        trailak4_abseta = np.abs(events['trailak4_eta'].array())
-
-        cuts_to_apply = {
-            'Trk-Trk' : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
-            'Trk-EE'  : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
-            'Trk-HF'  : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
-            'EE-EE'   : Cut('VecDPhi', low_thresh=None, high_thresh=1.0),
-            'EE-HF'   : Cut('VecB', low_thresh=None, high_thresh=0.2),
-            'HF-HF'   : Cut('VecB', low_thresh=None, high_thresh=0.2),
-        }
-
-        # Get more central and more forward jets
-        more_central_jet_abseta = np.minimum(leadak4_abseta, trailak4_abseta)
-        more_forward_jet_abseta = np.maximum(leadak4_abseta, trailak4_abseta)
-
-        # Initialize mask with all Trues
-        mask = np.ones_like(more_central_jet_abseta, dtype=bool)
-
-        # The real deal: Based on the event categorizations, apply the relevant cuts
-        # Trk-Trk category
-        trk_trk_cat = (more_central_jet_abseta < 2.5) & (more_forward_jet_abseta < 2.5)
-        mask_trk_trk = np.where(trk_trk_cat, cuts_to_apply['Trk-Trk'].get_mask(events), True)
-        mask = mask & mask_trk_trk
-
-        # Trk-EE category
-        trk_ee_cat = (more_central_jet_abseta < 2.5) & (more_central_jet_abseta > 2.5) & (more_forward_jet_abseta < 3.0)
-        mask_trk_ee = np.where(trk_ee_cat, cuts_to_apply['Trk-EE'].get_mask(events), True)
-        mask = mask & mask_trk_ee
-
-        # Trk-HF category
-        trk_hf_cat = (more_central_jet_abseta < 2.5) & (more_central_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)
-        mask_trk_hf = np.where(trk_hf_cat, cuts_to_apply['Trk-HF'].get_mask(events), True)
-        mask = mask & mask_trk_hf
-
-        # EE-EE category
-        ee_ee_cat = (more_central_jet_abseta > 2.5) & (more_central_jet_abseta < 3.0) & (more_forward_jet_abseta > 2.5) & (more_forward_jet_abseta < 3.0)
-        mask_ee_ee = np.where(ee_ee_cat, cuts_to_apply['EE-EE'].get_mask(events), True)
-        mask = mask & mask_ee_ee
-
-        # EE-HF category
-        ee_hf_cat = (more_central_jet_abseta > 2.5) & (more_central_jet_abseta < 3.0) & (more_forward_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)
-        mask_ee_hf = np.where(ee_hf_cat, cuts_to_apply['EE-HF'].get_mask(events), True)
-        mask = mask & mask_ee_hf
-
-        # HF-HF category
-        hf_hf_cat = (more_central_jet_abseta > 3.0) & (more_central_jet_abseta < 5.0) & (more_forward_jet_abseta > 3.0) & (more_forward_jet_abseta < 5.0)
-        mask_hf_hf = np.where(hf_hf_cat, cuts_to_apply['HF-HF'].get_mask(events), True)
-        mask = mask & mask_hf_hf
-
-        return mask
-
 class Cut:
     '''Helper class to represent a single cut, and retrieve the mask.'''
     def __init__(self, variable, low_thresh, high_thresh, special_apply=None, change_endcap_def=None):
