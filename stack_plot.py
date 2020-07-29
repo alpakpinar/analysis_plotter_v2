@@ -33,7 +33,7 @@ def load_style_and_selection(additional_cuts, categorization=None):
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', help='The tree version to be used as inputs, default is 09Jul20.', default='09Jul20')
+    parser.add_argument('--version', help='The tree version to be used as inputs, default is 29Jul20.', default='29Jul20')
     parser.add_argument('--variables', help='The list of variables to be plotted, default is mjj.', nargs='*', default='mjj')
     parser.add_argument('--region', help='The region to be plotted.')
     parser.add_argument('--noCuts', help='Plot without any additional cuts applied.', action='store_true')
@@ -231,7 +231,9 @@ def main():
         # Use the trees with JES variations recorded
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/25Jul20_JES'
     else:
-        if args.version == '09Jul20':
+        if args.version == '29Jul20':
+            inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/29Jul20'
+        elif args.version == '09Jul20':
             inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'
         elif args.version == '05Jul20':
             inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/2020-07-05_nodphijj'

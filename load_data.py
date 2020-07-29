@@ -7,7 +7,6 @@ import sys
 from pprint import pprint
 import uproot
 import numpy as np
-from helper_classes import CleaningCut
 
 pjoin = os.path.join
 
@@ -125,9 +124,10 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
                 mask_update = cut.get_mask(events)
                 mask = mask & mask_update
             # Apply the cleaning cuts as well (VecB, VecDPhi), if requested (by default it is not)
+            # In 29Jul20 trees, these are readily saved as a boolean
             if apply_cleaning_cuts:
-                cc = CleaningCut()
-                cleaning_mask = cc.get_mask(events)
+                cleaning_mask = events['pass_cleaning_cut'].array()
+                print(cleaning_mask)
                 mask = mask & cleaning_mask
                 
         else:
