@@ -27,11 +27,12 @@ def parse_cli():
     parser.add_argument('--thresholds', help='Thresholds on the two variables that are used to define ABCD regions.', nargs=2, type=float, default=[1.5, 0.7])
     parser.add_argument('--additionalCuts', help='Additional cuts to apply on all ABCD regions.', nargs='*', default=['recoil'])
     parser.add_argument('--applyCleaningCuts', help='Apply cleaning cuts on all ABCD regions.', action='store_true')
+    parser.add_argument('--veto_hfhf', help='Veto HF-HF events.', action='store_true')
     args = parser.parse_args()
     return args
 
-def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, sty, sel,
-            variable='mjj', save_to_root=False, eta_binning='very_fine', output_dir_tag=None, apply_cleaning_cuts=False
+def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv_file, sty, sel, variable='mjj', 
+            save_to_root=False, eta_binning='very_fine', output_dir_tag=None, apply_cleaning_cuts=False, veto_hfhf=False
             ):    
     '''Get the ratio of excess data events (over MC) in two regions, region1 and region2.'''
     # Call the stack_plot function to get the excess events in each region
@@ -46,7 +47,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
                                                  region=region,
                                                  eta_binning=eta_binning,
                                                  output_dir_tag=output_dir_tag,
-                                                 apply_cleaning_cuts=apply_cleaning_cuts
+                                                 apply_cleaning_cuts=apply_cleaning_cuts,
+                                                 veto_hfhf=veto_hfhf
                                                  )
 
         # If excess events < 0, can set them to zero since we are not interested with those bins
@@ -84,6 +86,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
         outdir = f'./output/{outtag}/qcd_estimation/{sel.selection_tag}/{sel.additional_selection_tag}'
     if apply_cleaning_cuts:
         outdir += '/with_cleaning_cuts'
+    if veto_hfhf:
+        outdir += '/veto_hfhf'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     outfile = f'excess_events_regions_{region1}_{region2}_{variable}.pdf'
@@ -112,7 +116,8 @@ def get_ratio_of_excess_data(inpath, outtag, region1, region2, process_list, csv
     return ratio, bins
 
 def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable='mjj', 
-                save_to_root=False, eta_binning='very_fine', output_dir_tag=None, apply_cleaning_cuts=False
+                save_to_root=False, eta_binning='very_fine', output_dir_tag=None, apply_cleaning_cuts=False,
+                veto_hfhf=False
                 ):
     '''
     Using the ratios between several regions, get the QCD estimate for the signal region.
@@ -130,6 +135,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
     eta_binning      : The eta binning to be used for the TF calculation in ABCD method, defaults to "very_fine"
     output_dir_tag   : The tag to be used for output directory naming, has information about the eta binning used in C/B calculation.
     apply_cleaning_cuts   : Apply cleaning cuts (VecB, VecDPhi) on top of all ABCD regions, by default, this will not be done.
+    veto_hfhf        : Veto HF-HF events in the calculation, by default this is not done.
     '''
     # Here, the QCD estimation is calculated as: (C/B) * A 
     # First, get the ratio of C/B, use coarser eta binning for the ratio (to smooth the TF) if requested
@@ -141,7 +147,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
                                     save_to_root=False,
                                     eta_binning=eta_binning,
                                     output_dir_tag=output_dir_tag,
-                                    apply_cleaning_cuts=apply_cleaning_cuts
+                                    apply_cleaning_cuts=apply_cleaning_cuts,
+                                    veto_hfhf=veto_hfhf
                                     )
     # If coarser eta binning is used, resize the ratio array by repetition so that its compatible 
     # to use in arithmetic operations with the other histograms
@@ -166,7 +173,8 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
                                     cuts=sel.selections_by_region['region A'], 
                                     region='A',
                                     output_dir_tag=output_dir_tag,
-                                    apply_cleaning_cuts=apply_cleaning_cuts
+                                    apply_cleaning_cuts=apply_cleaning_cuts,
+                                    veto_hfhf=veto_hfhf
                                     ) 
 
     # If excess events are smaller than 0, just set them to 0 since we're not interested in those
@@ -190,7 +198,9 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
     
     if apply_cleaning_cuts:
         outdir += '/with_cleaning_cuts'
-        
+    if veto_hfhf:
+        outdir += '/veto_hfhf'
+
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
@@ -222,7 +232,7 @@ def get_qcd_estimate(inpath, outtag, process_list, csv_file, sel, sty, variable=
     # Return the QCD estimations and the corresponding binning
     return qcd_estimation, bins
 
-def stack_plot_with_qcd_estimation(inpath, outtag, variable, sel, sty, process_list, csv_file, qcd_estimation, output_dir_tag=None, apply_cleaning_cuts=False):
+def stack_plot_with_qcd_estimation(inpath, outtag, variable, sel, sty, process_list, csv_file, qcd_estimation, output_dir_tag=None, apply_cleaning_cuts=False, veto_hfhf=False):
     '''
     Create a stack plot for the signal region with the QCD estimation included.
     Specify the pre-calculated QCD-estimation in qcd_estimation parameter as an array.
@@ -239,7 +249,8 @@ def stack_plot_with_qcd_estimation(inpath, outtag, variable, sel, sty, process_l
                include_qcd_estimation=True, 
                qcd_estimation=qcd_estimation,
                output_dir_tag=output_dir_tag,
-               apply_cleaning_cuts=apply_cleaning_cuts
+               apply_cleaning_cuts=apply_cleaning_cuts,
+               veto_hfhf=veto_hfhf
                )
 
 def main():
@@ -292,7 +303,8 @@ def main():
                                 variable=variable,
                                 eta_binning=eta_binning,
                                 output_dir_tag=output_dir_tag,
-                                apply_cleaning_cuts=args.applyCleaningCuts
+                                apply_cleaning_cuts=args.applyCleaningCuts,
+                                veto_hfhf=args.veto_hfhf
                                 )
 
     # Create a stack plot with QCD estimation included
@@ -303,7 +315,8 @@ def main():
                                 variable=variable,
                                 qcd_estimation=qcd_estimation,
                                 output_dir_tag=output_dir_tag,
-                                apply_cleaning_cuts=args.applyCleaningCuts
+                                apply_cleaning_cuts=args.applyCleaningCuts,
+                                veto_hfhf=args.veto_hfhf
                                 )
 
 if __name__ == '__main__':

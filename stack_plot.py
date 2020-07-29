@@ -42,13 +42,14 @@ def parse_cli():
     parser.add_argument('--jesVariation', help='JES variation to look at, can be central, up or down.')
     parser.add_argument('--categorization', help='The categorization to plot (e.g. Trk-EE), by default no categorization cut will be applied.')
     parser.add_argument('--applyCleaningCuts', help='Apply cleaning cuts while plotting, based on VecB and VecDPhi.', action='store_true')
+    parser.add_argument('--veto_hfhf', help='Veto events where both leading jets are in HF.', action='store_true')
     args = parser.parse_args()
     return args
 
 def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region, 
         variable='mjj', include_qcd_estimation=False, plot_signal=True, qcd_estimation=None, 
         include_qcd_mc=False, eta_binning='very_fine', output_dir_tag=None, jes_variation='central',
-        categorization=None, apply_cleaning_cuts=False
+        categorization=None, apply_cleaning_cuts=False, veto_hfhf=False
         ):
     '''
     Create a stack plot for the processes specified.
@@ -74,6 +75,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     jes_variation          : JES variation to look at. By default it is central (no variation).
     categorization         : The categorization according to the two leading jets (by default, None).
     apply_cleaning_cuts    : Apply cleaning cuts (VecB, VecDPhi) on top of all ABCD regions, by default, this will not be done.
+    veto_hfhf              : Veto HF-HF events in the calculation, by default this is not done.
     '''
     # Check about the QCD estimation
     if include_qcd_estimation and (qcd_estimation is None):
@@ -98,7 +100,7 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
         # Load the data from ROOT files: Get the histograms for each process + binning
         # To smooth out the TF as a function of jet eta in QCD estimation, use coarser eta binning if requested 
         h, bins = load_data(inpath, process, csv_file, variable, cuts, 
-                eta_binning=eta_binning, jes_variation=jes_variation, apply_cleaning_cuts=apply_cleaning_cuts)
+                eta_binning=eta_binning, jes_variation=jes_variation, apply_cleaning_cuts=apply_cleaning_cuts, veto_hfhf=veto_hfhf)
 
         if process != 'MET':
             histograms[process] = h
@@ -202,6 +204,8 @@ def stack_plot(inpath, outtag, process_list, csv_file, cuts, sty, sel, region,
     
     if apply_cleaning_cuts:
         outdir += '/with_cleaning_cuts'
+    if veto_hfhf:
+        outdir += '/veto_hfhf'
         
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -273,7 +277,8 @@ def main():
                                 include_qcd_mc=args.include_qcd_mc,
                                 jes_variation=args.jesVariation,
                                 categorization=args.categorization,
-                                apply_cleaning_cuts=args.applyCleaningCuts
+                                apply_cleaning_cuts=args.applyCleaningCuts,
+                                veto_hfhf=args.veto_hfhf
                                 )
     # The case where only a single variable is specified
     else:
@@ -286,7 +291,8 @@ def main():
                             include_qcd_mc=args.include_qcd_mc,
                             jes_variation=args.jesVariation,
                             categorization=args.categorization,
-                            apply_cleaning_cuts=args.applyCleaningCuts
+                            apply_cleaning_cuts=args.applyCleaningCuts,
+                            veto_hfhf=args.veto_hfhf
                             )
 
 if __name__ == '__main__':

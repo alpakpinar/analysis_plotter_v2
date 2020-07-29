@@ -33,6 +33,14 @@ abs_eta_binnings = {
     'coarse_largeEta' : list(np.arange(0,3.6,0.2)) + [5] # One transfer factor for 3.4 < |eta| < 5.0
 }
 
+def event_isin_hfhf_category(events):
+    '''Return a mask representing if the event is in HF-HF category (if both the leading jets are in HF).'''
+    leadak4_abseta = np.abs(events['leadak4_eta'].array())
+    trailak4_abseta = np.abs(events['trailak4_eta'].array())
+    
+    event_in_hfhf_category = (leadak4_abseta > 3.0) & (trailak4_abseta > 3.0)
+    return event_in_hfhf_category
+
 def get_data_from_csv(csv_file):
     '''Load data from the input CSV file: XS+sumw for each MC'''
     with open(csv_file, 'r') as f:
@@ -41,7 +49,7 @@ def get_data_from_csv(csv_file):
         d = {row[0] : float(row[1])/float(row[2]) for row in reader if 'Dataset' not in row}
     return d
 
-def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation=None, apply_cleaning_cuts=False):
+def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_fine', jes_variation=None, apply_cleaning_cuts=False, veto_hfhf=False):
     '''
     From the given input path, load the weighted and scaled histograms as a function of 
     the requested variable. Use the selections provided in the selection_dict variable. 
@@ -128,6 +136,11 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
             if apply_cleaning_cuts:
                 cleaning_mask = events['pass_cleaning_cut'].array().astype(bool)
                 mask = mask & cleaning_mask
+            
+            # Veto HF-HF events if requested
+            if veto_hfhf:
+                hfhf_cat = event_isin_hfhf_category(events)
+                mask = mask & (~hfhf_cat)
                 
         else:
             mask = np.ones_like(events[variable].array(), dtype=bool)
