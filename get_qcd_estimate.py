@@ -20,7 +20,7 @@ pjoin = os.path.join
 
 def parse_cli():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 29Jul20.', default='29Jul20')
+    parser.add_argument('--version', help='The tree version to be used as inputs, defualt is 11Aug20.', default='11Aug20')
     parser.add_argument('--variable', help='The variable for the plotting of QCD template.', default='mjj')
     parser.add_argument('--eta_binning', help='The eta binning for the calculation of TF: C/B, can be fine or coarse. By default, very_fine is used.', default='very_fine')
     parser.add_argument('--selection_vars', help='The two variables used to define the ABCD regions.', nargs=2, default=['dphijj', 'max(neEmEF)'])
@@ -258,7 +258,9 @@ def main():
 
     # Path to ROOT files, by default use the latest ones (09Jul20), if specified use 05Jul20 or 30Jun20 instead.
     version = args.version
-    if version == '29Jul20':
+    if version == '11Aug20':
+        inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/11Aug20'
+    elif version == '29Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/29Jul20'
     elif version == '09Jul20':
         inpath = '/afs/cern.ch/work/a/aakpinar/public/forZeynep/VBF_trees/09Jul20'

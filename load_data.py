@@ -139,8 +139,9 @@ def load_data(inpath, process, csv_file, variable, cuts=None, eta_binning='very_
             
             # Veto HF-HF events if requested
             if veto_hfhf:
-                hfhf_cat = event_isin_hfhf_category(events)
-                mask = mask & (~hfhf_cat)
+#                hfhf_cat = event_isin_hfhf_category(events)
+                hfhf_mask = events['two_jets_in_hf'].array().astype(bool)
+                mask = mask & (~hfhf_mask)
                 
         else:
             mask = np.ones_like(events[variable].array(), dtype=bool)
